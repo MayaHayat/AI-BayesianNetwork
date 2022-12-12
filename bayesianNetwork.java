@@ -2,7 +2,7 @@
 
 import java.util.ArrayList;
 /**
- * This class constructs our bayesian network, it uses the given xml file in order to set all variables.
+ * This class constructs our Bayesian Network, it uses the given xml file in order to set all variables.
  * @author Maya
  *
  */
