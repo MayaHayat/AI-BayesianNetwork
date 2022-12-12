@@ -17,9 +17,10 @@ public class SecondAlgorithm {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\big_net.xml");
-		String input = "P(B0=v3|C1=T),1";
+		String input = "P(B0=v3|C3=T,B2=F,C2=v3),2";
 		bayesianNetwork bn = new bayesianNetwork(x);
 		setWantedOutcomesForGiven(input,bn);
+		//System.out.println(bn.getBN());
 //		printMat(bn.getBN().get(2).createTruthTable());
 		//System.out.println(bn.getBN().get(2));
 		//Factor f = new Factor(bn.getBN().get(1),bn);
@@ -32,8 +33,14 @@ public class SecondAlgorithm {
 		//			System.out.println("================");
 		//		}
 //		printMat(bn.getBN().get(2).createTruthTable());
-		ArrayList<Factor> containV = factorsContainV(bn.getBN().get(9),bn);
-		System.out.println(containV );
+		//ArrayList<Factor> containV = factorsContainV(bn.getBN().get(1),bn);
+		//Factor a = new Factor(bn.getBN().get(9),bn);
+		//System.out.println(a);
+		//System.out.println(containV);
+		//System.out.println(containV );
+		//System.out.println(bn.getBN().get(5));
+		//Factor f = new Factor(bn.getBN().get(5), bn);
+		//System.out.println(f);
 		System.out.println("=============");
 //		System.out.println("=============");
 		
@@ -46,12 +53,40 @@ public class SecondAlgorithm {
 		//Factor c = f.joinTwoFactors(containV.get(0), containV.get(2), bn);
 		//System.out.println(c);
 		//System.out.println(f.join(containV.get(0), c, bn));
-		System.out.println();
-		System.out.println(join(bn.getBN().get(9),bn));
+		//System.out.println();
+		Factor current = join(bn.getBN().get(2),bn);
+		//System.out.println(current);
+		Factor n = current.eliminateVariable(bn.getBN().get(1),bn);
+		//System.out.println(n);
+		//System.out.println(isLeaf(bn.getBN().get(3),bn));
+		System.out.println(isRelevent(input, bn));
+		
 	}
 	
 	
+//	public static double getProbability(String input, bayesianNetwork bn) {
+//		
+//	}
+//	
+//	
+	public static ArrayList<Variable> isRelevent(String input, bayesianNetwork bn){
+		ArrayList<Variable> hidden = getHidden(input, bn);
+		for (int i = hidden.size()-1 ; i >= 0 ; i--) {
+			if (isLeaf(hidden.get(i),bn) == true) {
+				hidden.remove(i);
+			}
+		}
+		return hidden;
+	}
 	
+	public static boolean isLeaf(Variable v, bayesianNetwork bn) {
+		System.out.println(factorsContainV(v, bn));
+		ArrayList <Factor> allVariables = factorsContainV(v, bn);
+		if ( allVariables.size() == 1)
+			return true;
+		return false;
+		
+	}
 
 	public static Factor join(Variable v, bayesianNetwork bn) {
 		ArrayList<Factor> factorsThatContainV = factorsContainV(v, bn);
@@ -71,8 +106,9 @@ public class SecondAlgorithm {
 			for (int j = 0 ; j < bn.getBN().get(i).createTruthTable()[0].length ; j ++) {
 				if (bn.getBN().get(i).createTruthTable()[0][j].equals(v.getName())) {
 					Factor temp = new Factor(bn.getBN().get(i),bn);
-					if (!factorsList.contains(temp))
+					if (!factorsList.contains(temp)) {
 						factorsList.add(temp);
+					}
 				}
 			}
 		}
