@@ -17,22 +17,109 @@ public class SecondAlgorithm {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\alarm_net.xml");
-		String input = "P(B=T|J=T,M=T),1";
+		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\big_net.xml");
+		String input = "P(D1=T|C2=v1,C3=F),2";
 		//String input = "P(B0=v3|C3=T,B2=F,C2=v3),2";
+		//String input = "P(A2=T|C2=v1),1";
+		//String input = "P(J=T|B=T),1";
+		//String input = "P(B=T|J=T,M=T),1";
 		bayesianNetwork bn = new bayesianNetwork(x);
 		setWantedOutcomesForGiven(input,bn);
 		//System.out.println(bn.getBN());
 		//System.out.println(bn.getBN());
 		//System.out.println(relevant(input, bn));
-		System.out.println(getProbs(input,bn));
+		System.out.println(getProbability(input,bn));
 		
 
 
 	}
 
+	
+	public static double getProbability(String input, bayesianNetwork bn) {
+		ArrayList <Variable> relevant = relevant(input, bn);
+		relevant.sort(null);
+		ArrayList<Variable> allHidden = getHidden(input,bn);
+		ArrayList<Variable> irrelevant = new ArrayList<>();
+		ArrayList <Variable> hidden = new ArrayList<>();
+		for (int i = 0 ; i < allHidden.size() ; i ++) {
+			if (relevant.contains(allHidden.get(i))) {
+				hidden.add(allHidden.get(i));
+			}
+			else {
+				irrelevant.add(allHidden.get(i));
+			}
+		}
+		ArrayList<Factor> allFactors = new ArrayList<>();
+		for (int i = 0 ; i < bn.getBN().size() ; i++) {
+			Factor current = new Factor(bn.getBN().get(i), bn);
+			allFactors.add(current);
+		}
+		
+		for (int i = allFactors.size() -1 ; i >=0  ; i--) {
+			for (int j = 0 ; j < irrelevant.size() ; j++) {
+				if (allFactors.get(i).getFactor().get(0).contains(irrelevant.get(j).getName())) {
+					allFactors.remove(i);
+				}
+			}
+		}
+		
+		//System.out.println(allFactors);
+		for (int i = 0 ; i < allFactors.size() ; i++) {
+			for (int j = i+1 ; j < allFactors.size() ; j++) {
+				if (allFactors.get(i).getFactor().equals(allFactors.get(j).getFactor())) {
+					allFactors.remove(j);
+				}
+			}
+		}
+//		System.out.println(allFactors);
+//		System.out.println("=================");
+		hidden.sort(null);
+		for (int i = 0 ; i < hidden.size() ; i++) {
+//			System.out.println(allFactors);
+//			System.out.println(hidden.get(i));
+//			System.out.println("=================");
+
+			Factor current = join(hidden.get(i), allFactors, bn);
+			current.eliminateVariable(hidden.get(i), bn);
+			//System.out.println(current);
+			for (int j = allFactors.size()-1 ; j >=0  ; j--) {
+				if (allFactors.get(j).getFactor().get(0).contains(hidden.get(i).getName())) {
+					allFactors.remove(j);
+				}
+			}
+			System.out.println("---------------");
+			System.out.println(allFactors);
+		}
+		String basic = input.substring(2, input.length()-3);
+		String [] queryIntoArray = basic.split("[\\|=,]");
+		Variable mainVariable = getMainVariable(input, bn);
+		//System.out.println(mainVariable.getWantedOutcome());
+		//System.out.println(allFactors);
+		Factor finalFactor = join(mainVariable, allFactors, bn);
+		
+		//System.out.println(finalFactor);
+		
+		mainVariable.setWantedOutcome(queryIntoArray[1]);
+		double sum = 0;
+		for (int i = 1 ; i < finalFactor.getFactor().size() ; i++) {
+			sum += Double.parseDouble(finalFactor.getFactor().get(i).get(finalFactor.getFactor().get(i).size()-1));
+		}
+		double alpha = 1/sum;
+		double probability = 0;
+		for (int i = 1 ; i < finalFactor.getFactor().size() ; i++) {
+			if (finalFactor.getFactor().get(i).get(0).equals(mainVariable.getWantedOutcome())) {
+				probability = Double.parseDouble(finalFactor.getFactor().get(i).get(finalFactor.getFactor().get(i).size()-1));
+			}
+		}
+		probability*=alpha;
+		
+		
+		return probability;
+	}
 
 
+	
+	// IGNORE FOR NOW
 
 	public static double getProbs(String input, bayesianNetwork bn) {
 		ArrayList <Variable> relevant = relevant(input, bn);
@@ -70,7 +157,7 @@ public class SecondAlgorithm {
 				}
 			}
 		}
-
+		//System.out.println(allFactors);
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			for (int j = i+1 ; j < allFactors.size() ; j++) {
 				if (allFactors.get(i).getFactor().equals(allFactors.get(j).getFactor())) {
@@ -117,9 +204,6 @@ public class SecondAlgorithm {
 
 		return probability;
 	}
-
-
-
 
 
 
