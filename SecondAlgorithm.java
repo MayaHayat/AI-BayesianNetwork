@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
+
 public class SecondAlgorithm {
 
 	/**
@@ -16,88 +17,204 @@ public class SecondAlgorithm {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\big_net.xml");
-		String input = "P(B0=v3|C3=T,B2=F,C2=v3),2";
+		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\alarm_net.xml");
+		String input = "P(B=T|J=T,M=T),1";
+		//String input = "P(B0=v3|C3=T,B2=F,C2=v3),2";
 		bayesianNetwork bn = new bayesianNetwork(x);
 		setWantedOutcomesForGiven(input,bn);
 		//System.out.println(bn.getBN());
-//		printMat(bn.getBN().get(2).createTruthTable());
-		//System.out.println(bn.getBN().get(2));
-		//Factor f = new Factor(bn.getBN().get(1),bn);
-		//System.out.println(f);
-//		System.out.println(f);
-		//System.out.println(f);
 		//System.out.println(bn.getBN());
-		//		for (int i = 0 ; i < bn.getBN().size() ; i++) {
-		//			System.out.println(	CPTtoFactor(bn.getBN().get(i).createTruthTableByVariable(bn.getBN().get(i)),bn));
-		//			System.out.println("================");
-		//		}
-//		printMat(bn.getBN().get(2).createTruthTable());
-		//ArrayList<Factor> containV = factorsContainV(bn.getBN().get(1),bn);
-		//Factor a = new Factor(bn.getBN().get(9),bn);
-		//System.out.println(a);
-		//System.out.println(containV);
-		//System.out.println(containV );
-		//System.out.println(bn.getBN().get(5));
-		//Factor f = new Factor(bn.getBN().get(5), bn);
-		//System.out.println(f);
-		System.out.println("=============");
-//		System.out.println("=============");
+		//System.out.println(relevant(input, bn));
+		System.out.println(getProbs(input,bn));
 		
-//		Factor joined = new Factor();
-//		Factor f = joined.joinFactors(containV.get(1), containV.get(2));
-//		System.out.println(f);
-//		Factor g = joined.joinFactors(containV.get(0), f);
-//		//System.out.println(g);
-		//f.join(containV.get(0), containV.get(1), bn);
-		//Factor c = f.joinTwoFactors(containV.get(0), containV.get(2), bn);
-		//System.out.println(c);
-		//System.out.println(f.join(containV.get(0), c, bn));
-		//System.out.println();
-		Factor current = join(bn.getBN().get(2),bn);
-		//System.out.println(current);
-		Factor n = current.eliminateVariable(bn.getBN().get(1),bn);
-		//System.out.println(n);
-		//System.out.println(isLeaf(bn.getBN().get(3),bn));
-		System.out.println(isRelevent(input, bn));
-		
-	}
-	
-	
-//	public static double getProbability(String input, bayesianNetwork bn) {
-//		
-//	}
-//	
-//	
-	public static ArrayList<Variable> isRelevent(String input, bayesianNetwork bn){
-		ArrayList<Variable> hidden = getHidden(input, bn);
-		for (int i = hidden.size()-1 ; i >= 0 ; i--) {
-			if (isLeaf(hidden.get(i),bn) == true) {
-				hidden.remove(i);
-			}
-		}
-		return hidden;
-	}
-	
-	public static boolean isLeaf(Variable v, bayesianNetwork bn) {
-		System.out.println(factorsContainV(v, bn));
-		ArrayList <Factor> allVariables = factorsContainV(v, bn);
-		if ( allVariables.size() == 1)
-			return true;
-		return false;
-		
+
+
 	}
 
-	public static Factor join(Variable v, bayesianNetwork bn) {
-		ArrayList<Factor> factorsThatContainV = factorsContainV(v, bn);
+
+
+
+	public static double getProbs(String input, bayesianNetwork bn) {
+		ArrayList <Variable> relevant = relevant(input, bn);
+		relevant.sort(null);
+		ArrayList<Variable> allHidden = getHidden(input,bn);
+		ArrayList<Variable> irrelevant = new ArrayList<>();
+		ArrayList <Variable> hidden = new ArrayList<>();
+		for (int i = 0 ; i < allHidden.size() ; i ++) {
+			if (relevant.contains(allHidden.get(i))) {
+				hidden.add(allHidden.get(i));
+			}
+			else {
+				irrelevant.add(allHidden.get(i));
+			}
+		}
+		ArrayList<Factor> allFactors = new ArrayList<>();
+		for (int i = 0 ; i < relevant.size() ; i++) {
+			ArrayList<Factor> containV = factorsContainV(relevant.get(i), bn);
+			for (int j = 0 ; j < containV.size() ; j++) {
+				if (!allFactors.contains(containV.get(j))) {
+					if (irrelevant.size() > 0) {
+						for (int k = 0 ; k < irrelevant.size() ; k ++) {
+							if (containV.get(j).getFactor().get(0).contains(irrelevant.get(k).getName())) {
+								continue;
+							}
+							else {
+								allFactors.add(containV.get(j));
+							}
+						}
+					}
+					else {
+						allFactors.add(containV.get(j));
+					}
+
+				}
+			}
+		}
+
+		for (int i = 0 ; i < allFactors.size() ; i++) {
+			for (int j = i+1 ; j < allFactors.size() ; j++) {
+				if (allFactors.get(i).getFactor().equals(allFactors.get(j).getFactor())) {
+					allFactors.remove(j);
+				}
+			}
+		}
+		
+		hidden.sort(null);
+		for (int i = 0 ; i < hidden.size() ; i++) {
+			//System.out.println(hidden.get(i));
+			Factor current = join(hidden.get(i), allFactors, bn);
+
+			current.eliminateVariable(hidden.get(i), bn);
+			for (int j = allFactors.size()-1 ; j >=0  ; j--) {
+				if (allFactors.get(j).getFactor().get(0).contains(hidden.get(i).getName())) {
+					allFactors.remove(j);
+				}
+			}
+			//allFactors.add(current);
+		}
+		
+		//Factor finalCalculation = join();
+		String basic = input.substring(2, input.length()-3);
+		String [] queryIntoArray = basic.split("[\\|=,]");
+		Variable mainVariable = getMainVariable(input, bn);
+		//System.out.println(mainVariable.getWantedOutcome());
+		Factor finalFactor = join(mainVariable, allFactors, bn);
+
+		//System.out.println(finalFactor);
+		mainVariable.setWantedOutcome(queryIntoArray[1]);
+		double sum = 0;
+		for (int i = 1 ; i < finalFactor.getFactor().size() ; i++) {
+			sum += Double.parseDouble(finalFactor.getFactor().get(i).get(finalFactor.getFactor().get(i).size()-1));
+		}
+		double alpha = 1/sum;
+		double probability = 0;
+		for (int i = 1 ; i < finalFactor.getFactor().size() ; i++) {
+			if (finalFactor.getFactor().get(i).get(0).equals(mainVariable.getWantedOutcome())) {
+				probability = Double.parseDouble(finalFactor.getFactor().get(i).get(finalFactor.getFactor().get(i).size()-1));
+			}
+		}
+		probability*=alpha;
+
+		return probability;
+	}
+
+
+
+
+
+
+	public static ArrayList<Variable> relevant(String input, bayesianNetwork bn){
+		ArrayList<Variable> hidden = getHidden(input, bn);
+		ArrayList<Variable> query = new ArrayList<>();
+		for (int i = 0; i < bn.getBN().size() ; i++) {
+			if (!hidden.contains(bn.getBN().get(i))) {
+				query.add(bn.getBN().get(i));
+			}
+		}
+
+		int start = 0;
+		int finish = Integer.MAX_VALUE;
+
+		ArrayList <Factor> allFactors = new ArrayList<>();
+		for (int i = 0 ; i < bn.getBN().size() ; i++) {
+			Factor current = new Factor(bn.getBN().get(i), bn);
+			allFactors.add(current);
+		}
+
+		while (finish!= start) {
+			start = hidden.size();
+			for (int i = 0 ; i < hidden.size() ; i++) {
+				if (leaf(allFactors, hidden.get(i)) && !query.contains(hidden.get(i))) { // CHECK IF THE && IS CORRECT
+					ArrayList<Factor> containV = factorsContainV(hidden.get(i), bn);
+					for (int j = 0 ; j <allFactors.size() ; j++) {
+						for (int k = 0 ; k < containV.size() ; k++) {
+							if (allFactors.get(j).getFactor().equals(containV.get(k).getFactor())) {
+								allFactors.remove(j);
+
+							}
+						}
+					}
+					hidden.remove(i);
+				}
+			}
+			finish = hidden.size();
+		}
+		for (int i = 0 ; i < query.size() ; i++) {
+			hidden.add(query.get(i));
+		}
+
+		return hidden;
+	}
+
+
+	public static boolean leaf(ArrayList<Factor> allFactors, Variable v) {
+		int count = 0;
+		for (int i = 0 ; i < allFactors.size() ; i++) {
+			for (int j = 0 ; j < allFactors.get(i).getFactor().get(0).size()-1 ; j++) {
+				if (allFactors.get(i).getFactor().get(0).get(j).equals(v.getName())) {
+					count++;
+				}
+
+			}
+		}
+		if (count == 1) return true;
+		return false;
+	}
+
+	public static Factor join(Variable v, ArrayList<Factor> factors, bayesianNetwork bn) {
+		ArrayList<Factor> factorsThatContainV = new ArrayList<>();
+		for (int i = 0 ; i < factors.size() ; i++) {
+			if (factors.get(i).getFactor().get(0).contains(v.getName())) {
+				factorsThatContainV.add(factors.get(i));
+			}
+		}
 		factorsThatContainV.sort(null);
 		Factor answer = factorsThatContainV.get(0);
 		for (int i = 1 ; i < factorsThatContainV.size() ; i++) {
-		answer = answer.joinTwoFactors(answer, factorsThatContainV.get(i), bn);
+			answer = answer.joinTwoFactors(answer, factorsThatContainV.get(i), bn);
+			factors.remove(factorsThatContainV.get(i));
 		}
-		
+		for (int i = 0 ; i < factors.size() ; i++) {
+			if (factorsThatContainV.get(0).getFactor().equals(factors.get(i))){
+				factors.remove(i);
+			}
+		}
+		factors.add(answer);
+
 		return answer;
 	}
+
+
+	//	public static Factor join(Variable v, bayesianNetwork bn) {
+	//		ArrayList<Factor> factorsThatContainV = factorsContainV(v, bn);
+	//		factorsThatContainV.sort(null);
+	//		Factor answer = factorsThatContainV.get(0);
+	//		for (int i = 1 ; i < factorsThatContainV.size() ; i++) {
+	//			answer = answer.joinTwoFactors(answer, factorsThatContainV.get(i), bn);
+	//		}
+	//
+	//		return answer;
+	//	}
 
 
 	public static ArrayList<Factor> factorsContainV(Variable v, bayesianNetwork bn){
@@ -111,7 +228,7 @@ public class SecondAlgorithm {
 					}
 				}
 			}
-		}
+		}		
 		return factorsList;
 	}
 
@@ -208,6 +325,18 @@ public class SecondAlgorithm {
 	 * @param bn represents out network
 	 * @return an arraylist of hidden variables.
 	 */
+	
+	public static Variable getMainVariable (String input, bayesianNetwork bn) {
+		Variable v = new Variable();
+		String basic = input.substring(2, input.length()-3);
+		String [] queryIntoArray = basic.split("[\\|=,]");
+		for (int i  = 0 ; i < bn.getBN().size() ; i++) {
+			if (bn.getBN().get(i).getName().equals(queryIntoArray[0]))
+				v = bn.getBN().get(i);
+		}
+		v.setWantedOutcome(queryIntoArray[1]);
+		return v;
+	}
 
 
 	public static ArrayList<Variable> getHidden(String input , bayesianNetwork bn){
@@ -224,6 +353,34 @@ public class SecondAlgorithm {
 		}
 		return hidden;
 	}
+	
+	
+	public static void setWantedOutcomesForquery(String input, bayesianNetwork bn) {
+		String basic = input.substring(2, input.length()-3);
+		String [] queryIntoArray = basic.split("[\\|=,]");
+		ArrayList <String> query = new ArrayList<>();
+		for (int i = 0 ; i < queryIntoArray.length ; i++)
+			query.add(queryIntoArray[i]);
+		//Set given wanted outcome
+		ArrayList<Variable> given = new ArrayList<>();
+		bn.getBN();
+		for (int i = 0 ; i < bn.getBN().size() ; i ++) {
+			for (int j = 2; j < query.size() ; j+=2) {
+				if (bn.getBN().get(i).getName().equals(query.get(j))) {
+					bn.getBN().get(i).setWantedOutcome(query.get(j+1));
+					given.add(bn.getBN().get(i));
+				}
+			}
+		}
+		//Set Variable wanted outcome
+		for (int i = 0 ; i < bn.getBN().size() ; i++) {
+			if (bn.getBN().get(i).getName().equals(queryIntoArray[0])) {
+				bn.getBN().get(i).setWantedOutcome(queryIntoArray[1]);
+			}
+		}
+
+	}
+
 
 	public static void printMat(String [][] s) {
 		for (int i = 0 ; i < s.length ; i++) {

@@ -113,7 +113,7 @@ public class Factor implements Comparable <Factor>{
 	 * @return
 	 */
 	
-	public Factor eliminateVariable(Variable v, bayesianNetwork bn) {
+	public void eliminateVariable(Variable v, bayesianNetwork bn) {
 		ArrayList<ArrayList<String>>  newFactor = new ArrayList<>();
 		for (int i = 0 ; i < this.factor.get(0).size() ; i++) {
 			if (this.factor.get(0).get(i).equals(v.getName())) {
@@ -145,11 +145,11 @@ public class Factor implements Comparable <Factor>{
 			}
 			currentRow.add("" + probability);
 			newFactor.add(currentRow);
-			
 		}
-		Factor f = new Factor();
-		f.factor = newFactor;
-		return f;
+		this.factor = newFactor;
+//		Factor f = new Factor();
+//		f.factor = newFactor;
+//		return f;
 	}
 
 
@@ -161,6 +161,8 @@ public class Factor implements Comparable <Factor>{
 	 * @param bn is our network
 	 * @return a joint factor
 	 */
+	
+	
 
 
 	public Factor joinTwoFactors(Factor a, Factor b, bayesianNetwork bn) {

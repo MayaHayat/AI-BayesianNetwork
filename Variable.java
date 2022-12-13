@@ -3,7 +3,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Variable {
+public class Variable implements Comparable <Variable>{
 	private String name;
 	private ArrayList<String> possibleOutcomes;
 	private String wantedOutcome;
@@ -259,11 +259,22 @@ public class Variable {
 
 	public String toString() {
 		String s ="";
-		s+= "=> Variable: " + this.name  + " Parents: " + this.getParentsName() +" Possible outcomes: " + this.possibleOutcomes + " Wanted outcome: " + this.wantedOutcome +  " Probabilities: " + Arrays.toString(this.probabilities) + "\n";
+		s+= "=> Variable: " + this.name + " Parents: " + this.getParentsName() +" Possible outcomes: " + this.possibleOutcomes + " Wanted outcome: " + this.wantedOutcome +  " Probabilities: " + Arrays.toString(this.probabilities) + "\n";
 
 
 		return s;
 	}
+	
+	
+	/**
+	 * This function compares between two variable's names
+	 * @param o is the other to be compared with.
+	 */
+
+	public int compareTo(Variable o) {
+		return (this.name.compareTo(o.name));
+	}
+
 
 
 }
