@@ -10,6 +10,7 @@ public class Factor implements Comparable <Factor>{
 	private bayesianNetwork bn;
 	private int length;
 	private int height;
+	private int multiplications;
 
 
 
@@ -21,7 +22,7 @@ public class Factor implements Comparable <Factor>{
 	 * Constructor that creates a CPT for a specific variable and turns it into a factor
 	 * @param cpt is the CPT we want to convert
 	 */
-
+//CHECK THIS FUNCTION
 	public Factor(Variable v, bayesianNetwork bn){
 		this.v = v;
 		this.cpt = v.createTruthTable();
@@ -29,9 +30,11 @@ public class Factor implements Comparable <Factor>{
 		ArrayList<ArrayList<String>> factor = twodIntoArrayList(v.createTruthTable());
 		ArrayList<Integer> rowsToRemove = new ArrayList<>();
 		int deleteCol=-1;
-		for (int i = 0 ; i < factor.get(0).size()  ; i++) {
+		for (int i = 0 ; i < factor.get(0).size()-1 ; i++) {
 			for (int j = 0 ; j < bn.getBN().size() ; j ++) {
+				//System.out.println(factor.get(0).get(i) + " " + bn.getBN().get(j).getName());
 				if (factor.get(0).get(i).equals(bn.getBN().get(j).getName())) {
+					//System.out.println(bn.getBN().get(j));
 					if (bn.getBN().get(j).getWantedOutcome()!=(null)) {
 						deleteCol = i;
 						for (int k = 1 ; k < factor.size() ; k++) {
@@ -41,6 +44,7 @@ public class Factor implements Comparable <Factor>{
 							}
 						}
 						factor = removeCol(factor, deleteCol);
+						i=0;   //Make sure this is correct!!!!!!!!!!!!!!!!!
 					}
 				}
 			}
@@ -56,7 +60,9 @@ public class Factor implements Comparable <Factor>{
 	}
 
 
-
+	public void setIntMulti(int n) {
+		this.multiplications = n;
+	}
 
 	public ArrayList<ArrayList<String>> getFactor() {
 		return this.factor;
@@ -114,15 +120,19 @@ public class Factor implements Comparable <Factor>{
 	 */
 	
 	public void eliminateVariable(Variable v, bayesianNetwork bn) {
+//		System.out.println(this.factor);
+//		System.out.println("-----------------");
 		ArrayList<ArrayList<String>>  newFactor = new ArrayList<>();
 		for (int i = 0 ; i < this.factor.get(0).size() ; i++) {
 			if (this.factor.get(0).get(i).equals(v.getName())) {
 				this.factor = removeCol(this.factor, i);
 			}
 		}
-		
+//		System.out.println(this.factor);
+//		System.out.println("-----------------");
 		newFactor.add(this.factor.get(0));
-		
+//		System.out.println(newFactor);
+//		System.out.println("+++++++++++++++++");
 		ArrayList<String> currentRow = new ArrayList<>();
 		ArrayList<String> compareToRow = new ArrayList<>();
 		double probability = 0;
@@ -137,19 +147,23 @@ public class Factor implements Comparable <Factor>{
 				for (int n = 0 ; n < this.factor.get(0).size()-1 ; n++) {
 					compareToRow.add(this.factor.get(k).get(n));
 				}
+
 				if (currentRow.equals(compareToRow)) {
+
 					probability += Double.parseDouble(this.factor.get(k).get(this.factor.get(0).size()-1));
-					this.factor.remove(k);
 					
+					//System.out.println("===> " + currentRow + " " + compareToRow + " "+ probability );
+					this.factor.remove(k);
+					k--;		
+
 				}
 			}
 			currentRow.add("" + probability);
 			newFactor.add(currentRow);
+			//System.out.println(">>>>>>>>>>>>>  "  + newFactor);
 		}
 		this.factor = newFactor;
-//		Factor f = new Factor();
-//		f.factor = newFactor;
-//		return f;
+
 	}
 
 
@@ -166,6 +180,7 @@ public class Factor implements Comparable <Factor>{
 
 
 	public Factor joinTwoFactors(Factor a, Factor b, bayesianNetwork bn) {
+		this.multiplications = 0;
 		//System.out.println(a);
 		//System.out.println(b);
 		this.bn=bn;
@@ -208,13 +223,19 @@ public class Factor implements Comparable <Factor>{
 			//probabilities.add(getProbability(a,all, i, factorMain.factor.size()-1)*getProbability(b,all, i, factorMain.factor.size()-1));
 
 			probabilities.add(getProbability(a,all)*getProbability(b,all));
+			multiplications++;
 			
 		}
 		for (int i =1 ; i < factorMain.factor.size() ; i++) {
 			factorMain.factor.get(i).add("" +probabilities.get(i-1));
 		}
-		
+		factorMain.setIntMulti(multiplications);
 		return factorMain;
+	}
+	
+	
+	public int getMultiplications() {
+		return this.multiplications;
 	}
 	
 	/**

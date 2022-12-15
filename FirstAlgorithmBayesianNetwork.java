@@ -1,30 +1,41 @@
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
+
+/**
+ * This class implements the simple deduction algorithm of the Bayesian Network.
+ * This class uses the following classes:
+ * 	readXmlFile
+ * 	Variable
+ * 	CPT
+ * 	bayesianNetwork
+ * @author Maya
+ * @version 1.0
+ */
 
 public class FirstAlgorithmBayesianNetwork {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
-		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\alarm_net.xml");
-		String input = "P(B=T|J=T,M=T),1";
+		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\big_net.xml");
+		//String input = "P(A=T|B=T,M=F),1";
+		//String input = "P(A2=T|C2=v1),1";
+		//String input = "P(C3=T|B1=T,B0=v3),1";
+		String input = "P(D1=T|C2=v1,C3=F),1";
 		bayesianNetwork bn = new bayesianNetwork(x);
-		
-		finalCalculation(input,bn);
+				
+		//finalCalculation(input,bn);
+		System.out.println(finalCalculation(input,bn));
 		
 	}
 	/**
-	 * ======= NEED TO ADD IF CPT IS FOUND IMIDIATLY =============
 	 * This function finally returns the probability of the event happening.
 	 * @param input the given query as a string
 	 * @param bn is the Bayesian Network
 	 * @return the probability, the number of additions, the number of multiplications
 	 */
-
-
-	public static int finalCalculation(String input, bayesianNetwork bn) {
+	public static String finalCalculation(String input, bayesianNetwork bn) {
 		String variable = convert(input).get(0);
 		int numOfOutcomesForV =0 ; 
 		double keepRecord [] = new double [3];
@@ -32,14 +43,25 @@ public class FirstAlgorithmBayesianNetwork {
 		double denominator = 0;
 		double answerNumerator = 0;
 		double answerDenominator = 0;
+		String s = "";
+		
+		// Find whether we can find directly from CPT
+		for (int i = 0; i < bn.getBN().size() ; i++) {
+			if (variable.equals(bn.getBN().get(i).getName())) {
+				if (bn.getBN().get(i).getParents().equals(getGiven(input, bn))) {
+					setWantedOutcomesForAll(input,bn,1);
+					s =""+ probs(bn.getBN().get(i), bn) + ", 0, 0";
+					return s;
+				}
+			}
+		}		
 
 		for (int i = 1 ; i < createAlternatingTable(getHidden(input, bn)).length; i ++) {
-			
 			setWantedOutcomesForAll(input,bn,i);
 			numerator =probs(bn.getBN().get(0),bn);
-
 			for (int j = 1 ; j < bn.getBN().size() ; j++) {
 				numerator *=probs(bn.getBN().get(j),bn);
+				
 				keepRecord[2]++;
 			}
 			answerNumerator += numerator;
@@ -54,6 +76,9 @@ public class FirstAlgorithmBayesianNetwork {
 			}
 			answerDenominator += denominator;
 		}
+		double answer = answerNumerator/(answerDenominator);
+		keepRecord[0] = answer;
+		
 		
 		for (int i = 0 ; i < bn.getBN().size() ; i++) {
 			if (bn.getBN().get(i).getName().equals(variable))
@@ -67,14 +92,16 @@ public class FirstAlgorithmBayesianNetwork {
 				}
 				keepRecord[1]++;
 			}
-			keepRecord[1]--;
+			//keepRecord[1]--;
 		}
-		double answer = answerNumerator/(answerDenominator);
-		keepRecord[0] = answer;
+		keepRecord[1]--;
 
-		System.out.println(Arrays.toString(keepRecord));
-		return 1;
+		s+= "" + answer + ", " + keepRecord[1] +", " + keepRecord[2];
+		return s;
 	}
+	
+	
+	
 
 
 	/**
@@ -121,12 +148,11 @@ public class FirstAlgorithmBayesianNetwork {
 	}
 
 	/**
-	 * This function finds the correct row to recieve from the probability later
+	 * This function finds the correct row to receive from the probability later
 	 * @param rowNum
 	 * @param numberOfcols to look at in function.
 	 * @return a list of all rows that contain the wanted outcomes of each variables.
 	 */
-
 	public static ArrayList<Integer> getRowNumber(ArrayList<Integer> rowNum , int numberOfcols){
 		ArrayList <Integer> numbers = new ArrayList<>();
 		for (int i = 0 ; i < rowNum.size() ; i++) {
@@ -189,7 +215,13 @@ public class FirstAlgorithmBayesianNetwork {
 	}
 
 
-	//Set wanted outcomes for all
+	/**
+	 * This function only looks at the other outcomes of the variable and ignore its original wanted outcome.
+	 * @param input is the query as the received string from the input.txt
+	 * @param bn is out network.
+	 * @param loopNumber as we need to iterate over the possibilities of hidden in each row.
+	 * @param vOutcome the number of possible outcomes for the variable - the given variable in the query.
+	 */
 	public static void setWantedOutcomesForDenominator(String input, bayesianNetwork bn, int loopNumber, int vOutcome) {
 		String basic = input.substring(2, input.length()-3);
 		String [] queryIntoArray = basic.split("[\\|=,]");
@@ -234,6 +266,12 @@ public class FirstAlgorithmBayesianNetwork {
 		}
 	}
 
+	/**
+	 * This function sets the wanted outcomes for the denominator, note that in the denominator we treat the variable as an hidden as its wanted outcome alternates as well.
+	 * @param input the query as a string.
+	 * @param bn is our network.
+	 * @param loopNumber to rotate over our hidden possibilities in alternating table.
+	 */
 
 	// Set wanted outcomes for denominator
 	public static void setWantedOutcomesForDenominator2(String input, bayesianNetwork bn, int loopNumber) {
@@ -269,15 +307,18 @@ public class FirstAlgorithmBayesianNetwork {
 
 	}
 	
+	/**
+	 * This function creates an alternating table for the hidden variables as we have to change their wanted outcome in each loop we have to assign them different wanted outcome each time.
+	 * @param hidden is the array list of the hidden variables - the variables that aren't in the query.
+	 * @return a 2D array of the wanted outcomes so we can iterate through.
+	 */
 
-	//Create an alternating table for hidden's wanted outcome
 	public static String[][] createAlternatingTable(ArrayList<Variable> hidden){
 		int rows = 1;
 		for (int i = 0 ; i < hidden.size() ; i++) {
 			rows *= hidden.get(i).getPossibleOutcomes().size();
-
-
 		}
+		//Note that the first line is the names of variables, we should know that when accessing table to start loop from row 1.
 		String [][] alternating = new String [rows+1][hidden.size()];
 		for (int i = 0 ; i < alternating[0].length ; i++) {
 			alternating [0][i] = hidden.get(i).getName();	
@@ -303,7 +344,12 @@ public class FirstAlgorithmBayesianNetwork {
 
 	}
 
-	//Find hidden for denominator from BN 
+	/**
+	 * This function gets all the variables that aren't in the given query, note that in this function we treat the main variable as an hidden so its wanted value is changing as well.
+	 * @param input is the given string.
+	 * @param bn is our network that includes all variables.
+	 * @return an ArrayList of all the hidden variables.
+	 */
 	public static ArrayList<Variable> getHiddenForDenominator(String input , bayesianNetwork bn){
 		String basic = input.substring(5, input.length()-3);
 		String [] queryIntoArray = basic.split("[\\|=,]");
@@ -320,7 +366,12 @@ public class FirstAlgorithmBayesianNetwork {
 	}
 
 
-	//Find hidden from BN 
+	/**
+	 * This function gets all the variables that aren't in the given query.
+	 * @param input is the given string.
+	 * @param bn is our network that includes all variables.
+	 * @return an ArrayList of all the hidden variables.
+	 */
 	public static ArrayList<Variable> getHidden(String input , bayesianNetwork bn){
 		String basic = input.substring(2, input.length()-3);
 		String [] queryIntoArray = basic.split("[\\|=,]");
@@ -357,15 +408,15 @@ public class FirstAlgorithmBayesianNetwork {
 		return given;
 	}
 
-	public static void getVariable(String input, bayesianNetwork bn) {
-		String basic = input.substring(2, input.length()-3);
-		String [] queryIntoArray = basic.split("[\\|=,]");
-		for (int i = 0 ; i < bn.getBN().size() ; i++) {
-			if (bn.getBN().get(i).getName().equals(queryIntoArray[0])) {
-				bn.getBN().get(i).setWantedOutcome(queryIntoArray[1]);
-			}
-		}
-	}
+//	public static void getVariable(String input, bayesianNetwork bn) {
+//		String basic = input.substring(2, input.length()-3);
+//		String [] queryIntoArray = basic.split("[\\|=,]");
+//		for (int i = 0 ; i < bn.getBN().size() ; i++) {
+//			if (bn.getBN().get(i).getName().equals(queryIntoArray[0])) {
+//				bn.getBN().get(i).setWantedOutcome(queryIntoArray[1]);
+//			}
+//		}
+//	}
 
 	//Convert from String input to arrayList of all variables
 	public static ArrayList<String> convert(String s) {
