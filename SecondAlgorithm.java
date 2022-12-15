@@ -1,10 +1,23 @@
 import java.util.ArrayList;
 
 
+/**
+ * This class implements the variable elimination algorithm of the Bayesian Network.
+ * This class uses the following classes:
+ * 	readXmlFile
+ * 	Variable
+ * 	CPT
+ * 	bayesianNetwork
+ * @author Maya
+ * @version 1.0
+ */
+
+
 public class SecondAlgorithm {
 
 	/**
-	 * Turn CPTs into factors according to the evidence.
+	 * THE ALGORITHM IS DIVIDED INTO A COUPLE OF STEPS:
+	 * Turn CPTs into factors according to the evidence (deleting all irrelevant columns and rows).
 	 * If a factor is one valued we can disregard it.
 	 * While there are still hidden variables:
 	 * 		Pick a hidden variable
@@ -45,10 +58,17 @@ public class SecondAlgorithm {
 		//		System.out.println(f);
 
 	}
-	//DONT FORGET TO ADD IF IS FOUND IN CPT ALREADY
 
-
+	
+	/**
+	 * This function calculates the probability, number of additions and multiplications of the given query.
+	 * @param input represents the query
+	 * @param bn is the network
+	 * @return a string that contains probability, number of additions and multiplications.
+	 */
+	
 	public static String getProbability(String input, bayesianNetwork bn) {
+		// The first part finds out if we can immediately return the probability from CPT.
 		setWantedOutcomesForGiven(input,bn);
 		String s = "";
 		int additions = 0; 
@@ -66,11 +86,11 @@ public class SecondAlgorithm {
 		}
 		
 		
-		ArrayList <Variable> relevant = relevant(input, bn);
+		ArrayList <Variable> relevant = relevant(input, bn); 
 		relevant.sort(null);
-		ArrayList<Variable> allHidden = getHidden(input,bn);
-		ArrayList<Variable> irrelevant = new ArrayList<>();
-		ArrayList <Variable> hidden = new ArrayList<>();
+		ArrayList<Variable> allHidden = getHidden(input,bn); // Find all hidden variables.
+		ArrayList<Variable> irrelevant = new ArrayList<>(); // is all variables we need to remove from calculations
+		ArrayList <Variable> hidden = new ArrayList<>(); // all relevant hidden variables.
 		for (int i = 0 ; i < allHidden.size() ; i ++) {
 			if (relevant.contains(allHidden.get(i))) {
 				hidden.add(allHidden.get(i));
@@ -79,12 +99,14 @@ public class SecondAlgorithm {
 				irrelevant.add(allHidden.get(i));
 			}
 		}
+		// Add all factors from network to an arraylist of factors.
 		ArrayList<Factor> allFactors = new ArrayList<>();
 		for (int i = 0 ; i < bn.getBN().size() ; i++) {
 			Factor temp = new Factor(bn.getBN().get(i), bn);
 			allFactors.add(temp);
 		}
-
+		
+		// Remove all factors that contain irrelevant variables in them.
 		for (int i = allFactors.size() -1 ; i >=0  ; i--) {
 			for (int j = 0 ; j < irrelevant.size() ; j++) {
 				if (allFactors.get(i).getFactor().get(0).contains(irrelevant.get(j).getName())) {
@@ -92,7 +114,7 @@ public class SecondAlgorithm {
 				}
 			}
 		}
-		//get rid of all one valued tables
+		//Get rid of all one valued tables, this affects the number of calculations.
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			for (int j = i+1 ; j < allFactors.size() ; j++) {
 				if (allFactors.get(i).getFactor().equals(allFactors.get(j).getFactor())) {
@@ -100,9 +122,10 @@ public class SecondAlgorithm {
 				}
 			}
 		}
+		// Sort the variables according to ABC so factors can be eliminated in the correct order.
 		hidden.sort(null);
-		//		System.out.println(allFactors);
-		//		System.out.println("========================");
+//		System.out.println(allFactors);
+//		System.out.println("========================");
 		int multiplyCurrentSize; // how many additions were in each factor
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			if (allFactors.get(i).getFactor().get(0).size() < 2) {
@@ -110,14 +133,14 @@ public class SecondAlgorithm {
 				i=0;
 			}
 		}
-		allFactors.sort(null);
+		allFactors.sort(null); // Sort all factors according to size.
+		//Start the joining and eliminating process.
 		for (int i = 0 ; i < hidden.size() ; i++) {
 			multiplyCurrentSize = 0;
-			System.out.println(allFactors);
+//			System.out.println(allFactors);
 			Factor current = join(hidden.get(i), allFactors, bn);
-			System.out.println(hidden.get(i) + "  " + current);
-			System.out.println("-------------------");
-			//multiplications +=current.getFactor().size()-1; //add multiplications
+//			System.out.println(hidden.get(i) + "  " + current);
+//			System.out.println("-------------------");
 			multiplications +=current.getMultiplications();
 
 			multiplyCurrentSize = current.getFactor().size()-1; //This is used to calculate the num of additions, find size of factor before elimination
@@ -128,16 +151,16 @@ public class SecondAlgorithm {
 			for (int j = 0 ; j< allFactors.size()  ; j++) {
 				if (allFactors.get(j).getFactor().get(0).contains(hidden.get(i).getName())) {
 					allFactors.remove(j);
-					j=-1;	
+					j=0;	
 				}
 			}
 		}
-
+		
+		// Make sure the variable has to correct wanted outcome as it might change in the elimination function.
 		String basic = input.substring(2, input.length()-3);
 		String [] queryIntoArray = basic.split("[\\|=,]");
 		Variable mainVariable = getMainVariable(input, bn);
-
-		System.out.println("+++++++++++++++++++++++++++");
+		// Make sure we only have factors that aren't one valued.
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			if (allFactors.get(i).getFactor().get(0).size() < 2) {
 				allFactors.remove(i);
@@ -145,18 +168,18 @@ public class SecondAlgorithm {
 			}
 		}
 		int allFactorsSize = allFactors.size();
-		System.out.println(allFactors);
+//		System.out.println(allFactors);
 		Factor finalFactor = join(mainVariable, allFactors, bn);
 
-		System.out.println("2 " + multiplications);
-		System.out.println("=====================----");
-		System.out.println(finalFactor);
-		//multiplications += finalFactor.getFactor().size()-1;
+//		System.out.println("2 " + multiplications);
+//		System.out.println("=====================----");
+//		System.out.println(finalFactor);
 		if (allFactorsSize > 1)
 			multiplications += finalFactor.getMultiplications();
 
-		System.out.println("3 " + multiplications);
+//		System.out.println("3 " + multiplications);
 		mainVariable.setWantedOutcome(queryIntoArray[1]);
+		// The normalization part
 		double sum = 0;
 		for (int i = 1 ; i < finalFactor.getFactor().size() ; i++) {
 			sum += Double.parseDouble(finalFactor.getFactor().get(i).get(finalFactor.getFactor().get(i).size()-1));
@@ -176,8 +199,13 @@ public class SecondAlgorithm {
 		s+=""+probability + ", " + additions +", " + multiplications;
 		return s;
 	}
-
-
+	
+	/**
+	 * This function finds all relevant variables for the calculation
+	 * @param input the query sting
+	 * @param bn is the network
+	 * @return all the variables we don't want to eliminate
+	 */
 
 	public static ArrayList<Variable> relevant(String input, bayesianNetwork bn){
 		ArrayList<Variable> hidden = getHidden(input, bn);
@@ -221,6 +249,13 @@ public class SecondAlgorithm {
 
 		return hidden;
 	}
+	
+	/**
+	 * This function helps us remove all irrelevant hidden variables from the calculation.
+	 * @param allFactors is the current list of factors.
+	 * @param v is the variable we want to check whether is relevant.
+	 * @return true if is a leaf, else false.
+	 */
 
 
 	public static boolean leaf(ArrayList<Factor> allFactors, Variable v) {
@@ -236,32 +271,42 @@ public class SecondAlgorithm {
 		if (count == 1) return true;
 		return false;
 	}
+	
+	/**
+	 * This function joins all factors that contain a certain variable, this function also helps us count the number of multiplications.
+	 * @param v is the variable that all factors must contain in order to be joined in this round.
+	 * @param factors is an arraylist of all factors currently found, from that list we only join the relevant ones.
+	 * @param bn is out total network.
+	 * @return a factor which is a joint factor of all factors that contain v.
+	 */
+	
 
 	public static Factor join(Variable v, ArrayList<Factor> factors, bayesianNetwork bn) {
 		int multiply = 0;
+		// If there are no factors to join immediately return the factor, and set the number of multiplications to 0. 
 		if (factors.size() == 1) {
 			factors.get(0).setIntMulti(0);
 			return factors.get(0);
 		}
 
+		// find all factors that contain variable v.
 		ArrayList<Factor> factorsThatContainV = new ArrayList<>();
 		for (int i = 0 ; i < factors.size() ; i++) {
 			if (factors.get(i).getFactor().get(0).contains(v.getName())) {
 				factorsThatContainV.add(factors.get(i));
 			}
 		}
-
+		// Sort the factors according to their size to minimize number of multiplications.
 		factorsThatContainV.sort(null);
 		Factor answer = factorsThatContainV.get(0);
 		for (int i = 1 ; i < factorsThatContainV.size() ; i++) {
 			answer = answer.joinTwoFactors(answer, factorsThatContainV.get(i), bn);
-			//System.out.println(answer);
-			//trying
+			// note that the number of multiplications is the size of the factor after joining.
 			multiply += answer.getFactor().size()-1;
-
+			// We need to remove the factor that we just joined.
 			factors.remove(factorsThatContainV.get(i));
 		}
-
+		
 		for (int i = 0 ; i < factors.size() ; i++) {
 			if (factorsThatContainV.get(0).getFactor().equals(factors.get(i))){
 				factors.remove(i);
@@ -270,10 +315,16 @@ public class SecondAlgorithm {
 		}
 		factors.add(answer);
 		answer.setIntMulti(multiply);
-		System.out.println(multiply);
+		//System.out.println(multiply);
 		return answer;
 	}
 
+	/**
+	 * This function goes over the network and finds all factors that contain the specific variable.
+	 * @param v is the variable we want to find all factors that contain it.
+	 * @param bn is the network.
+	 * @return an arraylist of factors that contain the variable.
+	 */
 
 	public static ArrayList<Factor> factorsContainV(Variable v, bayesianNetwork bn){
 		ArrayList<Factor> factorsList = new ArrayList<>();
@@ -288,23 +339,6 @@ public class SecondAlgorithm {
 			}
 		}		
 		return factorsList;
-	}
-
-
-	public static Factor VasFactor(Factor f) {
-		ArrayList<ArrayList<String>> current = f.getFactor();
-		int numRows = current.size();
-		for (int i = 1; i < numRows; i++) {
-			ArrayList<String> row = current.get(i);
-			int numCols = row.size();
-			for (int j = 0; j < numCols - 1; j++) {
-				String temp = row.get(j);
-				row.set(j, row.get(j + 1));
-				row.set(j + 1, temp);
-			}
-		}
-		f.setFactor(current);
-		return f;
 	}
 
 
@@ -328,10 +362,16 @@ public class SecondAlgorithm {
 		}
 		return numbers;
 	}
+	
+	/**
+	 * This function convert the input string into an arraylist.
+	 * @param input is the input string
+	 * @return the query as an arraylist.
+	 */
 
 
-	public static ArrayList<String> convert(String s) {
-		String basic = s.substring(2, s.length()-3);
+	public static ArrayList<String> convert(String input) {
+		String basic = input.substring(2, input.length()-3);
 		String [] queryIntoArray = basic.split("[\\|=,]");
 		ArrayList <String> query = new ArrayList<>();
 		for (int i = 0 ; i < queryIntoArray.length ; i++)
@@ -365,13 +405,6 @@ public class SecondAlgorithm {
 				}
 			}
 		}
-		//		//Set Variable wanted outcome
-		//		for (int i = 0 ; i < bn.getBN().size() ; i++) {
-		//			if (bn.getBN().get(i).getName().equals(queryIntoArray[0])) {
-		//				bn.getBN().get(i).setWantedOutcome(queryIntoArray[1]);
-		//			}
-		//		}
-
 	}
 
 	/**
@@ -435,6 +468,7 @@ public class SecondAlgorithm {
 		}
 
 	}
+	
 
 	// These are used to check whether the answer is already found in CPT // 
 	
@@ -552,7 +586,6 @@ public class SecondAlgorithm {
 		for (int k = 0 ; k < hidden.size(); k++) {
 			alternating[0][k] = hidden.get(k).getName();
 			int numOutcomesT = hidden.get(k).getPossibleOutcomes().size();
-			int colNumT = k;
 			divideT *= numOutcomesT;
 			for (int j = 0 ; j < divideT-1 ; j ++) {
 				for (int i = (j)*alternating.length/divideT+1; i < (j+1)*alternating.length/divideT+1; i++) {
@@ -568,7 +601,7 @@ public class SecondAlgorithm {
 
 	}
 	
-	
+	// Only relevant for self check
 	public static void printMat(String [][] s) {
 		for (int i = 0 ; i < s.length ; i++) {
 			for (int j = 0 ; j < s[0].length ; j++) {

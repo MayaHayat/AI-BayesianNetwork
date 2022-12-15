@@ -1,6 +1,14 @@
 import java.util.ArrayList;
+
+
 import java.util.Arrays;
 import java.util.Collections;
+
+/**
+ * This class is the factor class which is similar to to CPT just without the irrelevant rows and columns
+ * @author Maya
+ *
+ */
 
 public class Factor implements Comparable <Factor>{
 
@@ -10,7 +18,7 @@ public class Factor implements Comparable <Factor>{
 	private bayesianNetwork bn;
 	private int length;
 	private int height;
-	private int multiplications;
+	private int multiplications; // This is used to count the number of multiplications later
 
 
 
@@ -22,7 +30,7 @@ public class Factor implements Comparable <Factor>{
 	 * Constructor that creates a CPT for a specific variable and turns it into a factor
 	 * @param cpt is the CPT we want to convert
 	 */
-//CHECK THIS FUNCTION
+	//CHECK THIS FUNCTION
 	public Factor(Variable v, bayesianNetwork bn){
 		this.v = v;
 		this.cpt = v.createTruthTable();
@@ -39,8 +47,10 @@ public class Factor implements Comparable <Factor>{
 						deleteCol = i;
 						for (int k = 1 ; k < factor.size() ; k++) {
 							if (!factor.get(k).get(i).equals(bn.getBN().get(j).getWantedOutcome())) {
-								if (!rowsToRemove.contains(k))
+								if (!rowsToRemove.contains(k)) {
 									rowsToRemove.add(k);
+									k = 0; // MAKE SURE THIS IS RIGHTTTTTT
+								}
 							}
 						}
 						factor = removeCol(factor, deleteCol);
@@ -71,7 +81,7 @@ public class Factor implements Comparable <Factor>{
 	public void setFactor(ArrayList<ArrayList<String>> factor) {
 		this.factor = factor;
 	}
-	
+
 	/**
 	 * This function removes a specific row from a given 2d arraylist
 	 * @param array is the array we want to remove the column from.
@@ -110,29 +120,27 @@ public class Factor implements Comparable <Factor>{
 		}
 		return factorV;
 	}
-	
-	
+
+
 	/**
-	 * 
-	 * @param v
-	 * @param bn
-	 * @return
+	 * This function eliminates a variable from a factor
+	 * @param v is the variable we want to eliminate
+	 * @param bn is the network
+	 * @return the factor after it has been eliminated
 	 */
-	
+
 	public void eliminateVariable(Variable v, bayesianNetwork bn) {
-//		System.out.println(this.factor);
-//		System.out.println("-----------------");
+		// Creates a new factor table
 		ArrayList<ArrayList<String>>  newFactor = new ArrayList<>();
+		// Remove the variable's column
 		for (int i = 0 ; i < this.factor.get(0).size() ; i++) {
 			if (this.factor.get(0).get(i).equals(v.getName())) {
 				this.factor = removeCol(this.factor, i);
 			}
 		}
-//		System.out.println(this.factor);
-//		System.out.println("-----------------");
-		newFactor.add(this.factor.get(0));
-//		System.out.println(newFactor);
-//		System.out.println("+++++++++++++++++");
+
+		newFactor.add(this.factor.get(0)); // Add the headers
+		// We iterate twice on the same factor with two pointers and check if there are rows that are the same
 		ArrayList<String> currentRow = new ArrayList<>();
 		ArrayList<String> compareToRow = new ArrayList<>();
 		double probability = 0;
@@ -143,16 +151,15 @@ public class Factor implements Comparable <Factor>{
 			}
 			probability = Double.parseDouble(this.factor.get(i).get(this.factor.get(i).size()-1));
 			for(int k = i+1 ; k < this.factor.size() ; k ++) {
-				 compareToRow = new ArrayList<>();
+				compareToRow = new ArrayList<>();
 				for (int n = 0 ; n < this.factor.get(0).size()-1 ; n++) {
 					compareToRow.add(this.factor.get(k).get(n));
 				}
 
 				if (currentRow.equals(compareToRow)) {
-
+					// If two rows are the same their probabilities up
 					probability += Double.parseDouble(this.factor.get(k).get(this.factor.get(0).size()-1));
-					
-					//System.out.println("===> " + currentRow + " " + compareToRow + " "+ probability );
+
 					this.factor.remove(k);
 					k--;		
 
@@ -160,10 +167,8 @@ public class Factor implements Comparable <Factor>{
 			}
 			currentRow.add("" + probability);
 			newFactor.add(currentRow);
-			//System.out.println(">>>>>>>>>>>>>  "  + newFactor);
 		}
 		this.factor = newFactor;
-
 	}
 
 
@@ -175,14 +180,10 @@ public class Factor implements Comparable <Factor>{
 	 * @param bn is our network
 	 * @return a joint factor
 	 */
-	
-	
-
 
 	public Factor joinTwoFactors(Factor a, Factor b, bayesianNetwork bn) {
 		this.multiplications = 0;
-		//System.out.println(a);
-		//System.out.println(b);
+
 		this.bn=bn;
 		Factor factorMain = new Factor();
 		//creating a new factor, add all common variables first then all different
@@ -208,23 +209,17 @@ public class Factor implements Comparable <Factor>{
 		}
 		//create an alternating table
 		factorMain.factor = createAlternatingTable(all);
-		//System.out.println(all);
 		factorMain.factor.get(0).add("Probs");
-		//double [] probs = new double[factorMain.factor.size()-1];
-		//System.out.println(factorMain.factor);
+
 		//From here on we use the below help function in order to find the correct row we want to find the probability for.
 		for (int i = 1 ; i < factorMain.factor.size() ; i++ ) {
 			//We set here the wanted outcomes for each variable as we go down the rows.
 			setWantedOutcomeForJoin(all, factorMain.factor.get(i));
-			//System.out.println(all);
-			//getProbability(a,all, i, factorMain.factor.size()-1);
-			//getProbability(b,all, i, factorMain.factor.size()-1);
-			//Note that we call the same function twice but at the same time and add the probabilities all together.
-			//probabilities.add(getProbability(a,all, i, factorMain.factor.size()-1)*getProbability(b,all, i, factorMain.factor.size()-1));
 
+			//Note that we call the same function twice but at the same time and add the probabilities all together.
 			probabilities.add(getProbability(a,all)*getProbability(b,all));
 			multiplications++;
-			
+
 		}
 		for (int i =1 ; i < factorMain.factor.size() ; i++) {
 			factorMain.factor.get(i).add("" +probabilities.get(i-1));
@@ -232,12 +227,12 @@ public class Factor implements Comparable <Factor>{
 		factorMain.setIntMulti(multiplications);
 		return factorMain;
 	}
-	
-	
+
+
 	public int getMultiplications() {
 		return this.multiplications;
 	}
-	
+
 	/**
 	 * This function is the help function for the join of two factors.
 	 * @param smallerFactor is either a or b each time.
@@ -247,10 +242,8 @@ public class Factor implements Comparable <Factor>{
 	 * @return
 	 */
 
-
-	//public static double getProbability(Factor smallerFactor, ArrayList<Variable> all, int row, int lengthOfMain) {
 	public static double getProbability(Factor smallerFactor, ArrayList<Variable> all) {
-
+		
 		ArrayList<Variable> relevent = new ArrayList<>();
 		ArrayList<String> releventOutcome = new ArrayList<>(); //the row i want to look for 
 		for (int j = 0 ; j < smallerFactor.factor.get(0).size() ; j++) {
@@ -262,14 +255,14 @@ public class Factor implements Comparable <Factor>{
 			}
 		}
 		double probability = 0;
-		
+
 		ArrayList<String> currentRow = new ArrayList<>();
 		for (int k = 1 ; k < smallerFactor.factor.size() ; k++) {
 			currentRow = new ArrayList<>();
 			for (int i = 0 ; i < smallerFactor.factor.get(0).size()-1 ; i++) {
 				currentRow.add(smallerFactor.factor.get(k).get(i));
 			}
-		
+
 			if (releventOutcome.equals(currentRow)) {
 				probability = Double.parseDouble(smallerFactor.factor.get(k).get(smallerFactor.factor.get(0).size()-1));
 				//System.out.println(probability + " " + releventOutcome);
@@ -278,6 +271,12 @@ public class Factor implements Comparable <Factor>{
 
 		return probability;
 	}
+	
+	/**
+	 * This function sets the wanted outcomes according to the row we're iterating on
+	 * @param all is the relevant variables found in the specific factor
+	 * @param row is an arraylist created from the row we're on.
+	 */
 
 
 	public static void setWantedOutcomeForJoin(ArrayList<Variable> all, ArrayList<String> row) {
@@ -287,21 +286,11 @@ public class Factor implements Comparable <Factor>{
 	}
 
 
-
-	public static ArrayList<Integer> getRowNumber(ArrayList<Integer> rowNum , int numberOfcols){
-		ArrayList <Integer> numbers = new ArrayList<>();
-		for (int i = 0 ; i < rowNum.size() ; i++) {
-			int count = 0;
-			for (int j = 0 ; j < rowNum.size() ; j++) {
-				if (rowNum.get(i)== rowNum.get(j))
-					count++;
-			}
-			if (count == numberOfcols) {
-				numbers.add(rowNum.get(i));
-			}
-		}
-		return numbers;
-	}
+	/**
+	 * This function creates an alternating table.
+	 * @param variables is the list of variables that need to create an alternating table for
+	 * @return the table for the specific variables
+	 */
 
 	public static ArrayList<ArrayList<String>> createAlternatingTable(ArrayList<Variable> variables){
 		int rows = 1;
@@ -334,6 +323,13 @@ public class Factor implements Comparable <Factor>{
 
 	}
 
+	/**
+	 * This function finds the variables that both factors contain
+	 * @param a 
+	 * @param b
+	 * @return an arraylist of names that both factors contain
+	 */
+	
 	public static ArrayList<String> commonVariables(Factor a, Factor b){
 		ArrayList<String> common = new ArrayList<>();
 		for (int i = 0 ; i < a.factor.get(0).size()-1 ; i++) {
@@ -345,6 +341,13 @@ public class Factor implements Comparable <Factor>{
 		}
 		return common;
 	}
+	
+	/**
+	 * This function finds the variables that either factor contains
+	 * @param a 
+	 * @param b
+	 * @return an arraylist of names that only one factor contain
+	 */
 
 	public static ArrayList<String> differentVariables(Factor a, Factor b){
 		ArrayList<String> different = new ArrayList<>();
@@ -378,8 +381,10 @@ public class Factor implements Comparable <Factor>{
 		s+= "Factor :" + factor +"\n";
 		return s;
 	}
-
-
+	
+	/**
+	 * This compareTo is used to sort the factors later by size
+	 */
 	@Override
 	public int compareTo(Factor o) {
 		if (this.factor.size() > o.factor.size()) {
@@ -397,7 +402,7 @@ public class Factor implements Comparable <Factor>{
 			for (int j = 0; j < o.factor.get(0).size()-1 ; j++) {
 				ASCII1 += this.factor.get(0).get(j).charAt(0);
 			}
-			
+
 			if (ASCII0 > ASCII1) return 1;
 			return -1;
 		}
