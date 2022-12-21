@@ -14,20 +14,7 @@ import java.util.Arrays;
 
 public class FirstAlgorithmBayesianNetwork {
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-		//		readXmlFile x=new readXmlFile("C:\\Users\\Maya\\OneDrive\\Desktop\\big_net.xml");
-		//		//String input = "P(A=T|B=T,M=F),1";
-		//		//String input = "P(A2=T|C2=v1),1";
-		//		//String input = "P(C3=T|B1=T,B0=v3),1";
-		//		String input = "P(D1=T|C2=v1,C3=F),1";
-		//		bayesianNetwork bn = new bayesianNetwork(x);
-
-		//finalCalculation(input,bn);
-		//		System.out.println(finalCalculation(input,bn));
-
-	}
+	
 	/**
 	 * This function finally returns the probability of the event happening.
 	 * @param input the given query as a string
@@ -54,10 +41,8 @@ public class FirstAlgorithmBayesianNetwork {
 				}
 			}
 		}		
-//		System.out.println(createAlternatingTable(getHidden(input, bn)).length);
 		for (int i = 1 ; i < createAlternatingTable(getHidden(input, bn)).length; i ++) {
 			setWantedOutcomesForAll(input,bn,i);
-//			System.out.println(bn.getBN());
 
 			numerator =probs(bn.getBN().get(0),bn);
 			for (int j = 1 ; j < bn.getBN().size() ; j++) {
@@ -68,10 +53,7 @@ public class FirstAlgorithmBayesianNetwork {
 			answerNumerator += numerator;
 			keepRecord[1]++;
 		}
-//		System.out.println(answerNumerator);
-//		System.out.println("==============================");
-//		System.out.println(getHiddenForDenominator(input, bn));
-//		System.out.println(createAlternatingTable(getHiddenForDenominator(input, bn)).length);
+		
 		for (int i = 1 ; i < createAlternatingTable(getHiddenForDenominator(input, bn)).length; i ++) {
 			setWantedOutcomesForDenominator2(input,bn,i);
 			denominator = probs(bn.getBN().get(0),bn);
@@ -80,8 +62,7 @@ public class FirstAlgorithmBayesianNetwork {
 			}
 			answerDenominator += denominator;
 		}
-//		System.out.println("+++++++++++++++++++");
-//		System.out.println(answerDenominator);
+
 		double answer = answerNumerator/(answerDenominator);
 
 
@@ -97,13 +78,12 @@ public class FirstAlgorithmBayesianNetwork {
 				}
 				keepRecord[1]++;
 			}
-			//keepRecord[1]--;
 		}
 		keepRecord[1]--;
 		
 		String result = String.format("%.5f", answer);
 
-		s+= "" + result + ", " + keepRecord[1] +", " + keepRecord[2];
+		s+= "" + result + "," + keepRecord[1] +"," + keepRecord[2];
 		return s;
 	}
 
@@ -120,7 +100,6 @@ public class FirstAlgorithmBayesianNetwork {
 
 	public static double probs(Variable v, bayesianNetwork bn) {
 		String [][] cpt = v.createTruthTableByVariable(v);
-		//printMat(cpt);
 		ArrayList <Integer> rowNum = new ArrayList<>();
 		for (int i = 0; i < cpt[0].length-1 ; i++) {
 			if (cpt[0][i].equals(v.getName())) {
@@ -338,7 +317,6 @@ public class FirstAlgorithmBayesianNetwork {
 		ArrayList <String> query = new ArrayList<>();
 		for (int i = 0 ; i < queryIntoArray.length ; i++)
 			query.add(queryIntoArray[i]);
-//		System.out.println(Arrays.toString(queryIntoArray));
 		ArrayList <String> variablesquery = new ArrayList<>();
 		for (int i = 0 ; i < queryIntoArray.length ; i+=2)
 			variablesquery.add(queryIntoArray[i]);
@@ -349,7 +327,6 @@ public class FirstAlgorithmBayesianNetwork {
 				hidden.add(bn.getBN().get(i));
 		}
 		
-//		System.out.println(hidden);
 		return hidden;
 	}
 

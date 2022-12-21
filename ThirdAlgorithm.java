@@ -35,37 +35,6 @@ public class ThirdAlgorithm {
 	 * Normalize.
 	 */
 
-	public static void main(String[] args) {
-		//		// TODO Auto-generated method stub
-		readXmlFile x=new readXmlFile("big_net.xml");
-		String input = "P(D1=T|C2=v1,C3=F),2";
-		//		//String input = "P(B0=v3|C3=T,B2=F,C2=v3),2";
-		//		//String input = "P(A2=T|C2=v1),1";
-		//		//String input = "P(J=T|B=T),1";
-		//		String input = "P(B=T|J=T,M=T),1";
-		//		//String input = "P(D1=T|A1=T,A2=F,A3=T,C1=T,C2=v1,C3=F),2";
-		////		String input = "P(D1=T|A1=T,A2=F,A3=T,C1=T,C2=v1,C3=F),2"; //supposed to be 0 , 0 
-		////		String input = "P(D1=T|A1=T,A2=F,A3=T,C1=T,C2=v1),2"; 
-		////		String input = "P(D1=T|A1=T,A2=F,A3=T,C1=T),2"; 
-		////		String input = "P(D1=T|A1=T,A2=F,A3=T),2";
-		////		String input = "P(D1=T|A1=T,A2=F),2";
-		////		String input ="P(D1=T|A1=T),2";
-		////		String input ="P(D1=T|C2=v1,C3=F,A1=T,A2=F),2";
-		////		String input ="P(D1=T|C2=v1,C3=F,A1=T),2";
-		////		String input ="P(D1=T|C2=v1,C3=F),2";
-		////		String input = "P(C3=T|B1=T,B0=v1),2";
-		bayesianNetwork bn = new bayesianNetwork(x);
-
-		////		setWantedOutcomesForGiven(input,bn);
-		//		System.out.println(bn.getBN());
-		//		//System.out.println(relevant(input, bn));
-		//System.out.println(getProbability(input,bn));
-		//		//System.out.println(bn.getBN());
-		//		//		Factor f = new Factor(bn.getBN().get(3), bn);
-		//		//		System.out.println(f);
-		//
-	}
-
 
 	/**
 	 * This function calculates the probability, number of additions and multiplications of the given query.
@@ -92,8 +61,7 @@ public class ThirdAlgorithm {
 		}
 
 		ArrayList <Variable> relevant = relevant(input, bn); 
-		//		System.out.println(relevant);
-		//		System.out.println("[[[[[[[[[[[[[[");
+
 		relevant.sort(null);
 		ArrayList<Variable> allHidden = getHidden(input,bn); // Find all hidden variables.
 		ArrayList<Variable> irrelevant = new ArrayList<>(); // is all variables we need to remove from calculations
@@ -106,22 +74,16 @@ public class ThirdAlgorithm {
 				irrelevant.add(allHidden.get(i));
 			}
 		}
-		//		System.out.println(hidden);
-		//
-		//		
-		//		System.out.println("=================================");
-		//		System.out.println(irrelevant);
+		
 		// Add all factors from network to an arraylist of factors.
 		ArrayList<Factor> allFactors = new ArrayList<>();
 		for (int i = 0 ; i < bn.getBN().size() ; i++) {
 			Factor temp = new Factor(bn.getBN().get(i), bn);
 			allFactors.add(temp);
 		}
-		//System.out.println("============");
 		// Remove all factors that contain irrelevant variables in them.
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			for (int j = 0 ; j < irrelevant.size() ; j++) {
-				//System.out.println(allFactors.get(i).getFactor().get(0));
 				if (allFactors.get(i).getFactor().get(0).contains(irrelevant.get(j).getName())) {
 					allFactors.remove(i);
 					i=0;
@@ -138,14 +100,14 @@ public class ThirdAlgorithm {
 				}
 			}
 		}
-		//System.out.println(allFactors);
 
 		// Sort the variables according to ABC so factors can be eliminated in the correct order.
-		//hidden.sort(null);
-		//System.out.println(hidden);
+
 		sort(hidden, allFactors);
-		//System.out.println(hidden);
-		//System.out.println(allFactors);
+		System.out.println("-------------------");
+		System.out.println(allFactors);
+		System.out.println(hidden);
+
 		int multiplyCurrentSize; // how many additions were in each factor
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			if (allFactors.get(i).getFactor().get(0).size() < 2) {
@@ -158,21 +120,15 @@ public class ThirdAlgorithm {
 		//Start the joining and eliminating process.
 		for (int i = 0 ; i < hidden.size() ; i++) {
 			multiplyCurrentSize = 0;
-			//			System.out.println("-------------");
-			//			System.out.println(allFactors);
-			//			System.out.println("-------++++++++------");
+
 
 			Factor current = join(hidden.get(i), allFactors, bn);
-			//			System.out.println(hidden.get(i));
-			//			System.out.println(allFactors);
-			//			System.out.println("++++++++++");
-			//			System.out.println(current);
+
 
 			multiplications +=current.getMultiplications();
 
 			multiplyCurrentSize = current.getFactor().size()-1; //This is used to calculate the num of additions, find size of factor before elimination
 			current.eliminateVariable(hidden.get(i), bn);
-			//System.out.println(" ========== " +current);
 
 			multiplyCurrentSize/= (current.getFactor().size()-1); //This is used to calculate the num of additions, find out by how much the table has shrank.
 			additions +=(current.getFactor().size()-1) * (multiplyCurrentSize-1);
@@ -194,20 +150,12 @@ public class ThirdAlgorithm {
 				i=0;
 			}
 		}
-		//System.out.println(allFactors);
 		int allFactorsSize = allFactors.size();
-		//		System.out.println(allFactors);
 		Factor finalFactor = join(mainVariable, allFactors, bn);
-		//		System.out.println("------------");
-		//		System.out.println(finalFactor);
 
-
-		//		System.out.println("2 " + multiplications);
-		//		System.out.println(finalFactor);
 		if (allFactorsSize > 1)
 			multiplications += finalFactor.getMultiplications();
 
-		//		System.out.println("3 " + multiplications);
 		mainVariable.setWantedOutcome(queryIntoArray[1]);
 		// The normalization part
 		double sum = 0;
@@ -275,7 +223,6 @@ public class ThirdAlgorithm {
 				query.add(bn.getBN().get(i));
 			}
 		}
-		//System.out.println(query);
 		int start = 0;
 		int finish = Integer.MAX_VALUE;
 
@@ -380,7 +327,6 @@ public class ThirdAlgorithm {
 		}
 		factors.add(answer);
 		answer.setIntMulti(multiply);
-		//System.out.println(multiply);
 		return answer;
 	}
 
