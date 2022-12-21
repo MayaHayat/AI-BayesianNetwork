@@ -52,7 +52,7 @@ public class SecondAlgorithm {
 ////		setWantedOutcomesForGiven(input,bn);
 //		System.out.println(bn.getBN());
 //		//System.out.println(relevant(input, bn));
-		System.out.println(getProbability(input,bn));
+		//System.out.println(getProbability(input,bn));
 //		//System.out.println(bn.getBN());
 //		//		Factor f = new Factor(bn.getBN().get(3), bn);
 //		//		System.out.println(f);
@@ -88,10 +88,10 @@ public class SecondAlgorithm {
 		
 		
 		ArrayList <Variable> relevant = relevant(input, bn); 
-		System.out.println(relevant);
+//		System.out.println(relevant);
+//		System.out.println("[[[[[[[[[[[[[[");
 		relevant.sort(null);
 		ArrayList<Variable> allHidden = getHidden(input,bn); // Find all hidden variables.
-		System.out.println(allHidden);
 		ArrayList<Variable> irrelevant = new ArrayList<>(); // is all variables we need to remove from calculations
 		ArrayList <Variable> hidden = new ArrayList<>(); // all relevant hidden variables.
 		for (int i = 0 ; i < allHidden.size() ; i ++) {
@@ -102,18 +102,25 @@ public class SecondAlgorithm {
 				irrelevant.add(allHidden.get(i));
 			}
 		}
+//		System.out.println(hidden);
+//
+//		
+//		System.out.println("=================================");
+//		System.out.println(irrelevant);
 		// Add all factors from network to an arraylist of factors.
 		ArrayList<Factor> allFactors = new ArrayList<>();
 		for (int i = 0 ; i < bn.getBN().size() ; i++) {
 			Factor temp = new Factor(bn.getBN().get(i), bn);
 			allFactors.add(temp);
 		}
-		System.out.println("============");
+		//System.out.println("============");
 		// Remove all factors that contain irrelevant variables in them.
-		for (int i = allFactors.size() -1 ; i >=0  ; i--) {
+		for (int i = 0 ; i < allFactors.size() ; i++) {
 			for (int j = 0 ; j < irrelevant.size() ; j++) {
+				//System.out.println(allFactors.get(i).getFactor().get(0));
 				if (allFactors.get(i).getFactor().get(0).contains(irrelevant.get(j).getName())) {
 					allFactors.remove(i);
+					i=0;
 				}
 			}
 		}
@@ -123,10 +130,11 @@ public class SecondAlgorithm {
 			for (int j = i+1 ; j < allFactors.size() ; j++) {
 				if (allFactors.get(i).getFactor().equals(allFactors.get(j).getFactor())) {
 					allFactors.remove(j);
+					j--;
 				}
 			}
 		}
-		System.out.println(allFactors);
+		//System.out.println(allFactors);
 
 		// Sort the variables according to ABC so factors can be eliminated in the correct order.
 		hidden.sort(null);
@@ -143,15 +151,15 @@ public class SecondAlgorithm {
 		//Start the joining and eliminating process.
 		for (int i = 0 ; i < hidden.size() ; i++) {
 			multiplyCurrentSize = 0;
-			System.out.println("-------------");
-
-			System.out.println(allFactors);
-			System.out.println("-------++++++++------");
+//			System.out.println("-------------");
+//			System.out.println(allFactors);
+//			System.out.println("-------++++++++------");
 
 			Factor current = join(hidden.get(i), allFactors, bn);
-			System.out.println(allFactors);
-			System.out.println("++++++++++");
-			System.out.println(current);
+//			System.out.println(hidden.get(i));
+//			System.out.println(allFactors);
+//			System.out.println("++++++++++");
+//			System.out.println(current);
 
 			multiplications +=current.getMultiplications();
 
@@ -183,7 +191,8 @@ public class SecondAlgorithm {
 		int allFactorsSize = allFactors.size();
 //		System.out.println(allFactors);
 		Factor finalFactor = join(mainVariable, allFactors, bn);
-		System.out.println(finalFactor);
+//		System.out.println("------------");
+//		System.out.println(finalFactor);
 		
 
 //		System.out.println("2 " + multiplications);
@@ -241,7 +250,7 @@ public class SecondAlgorithm {
 				query.add(bn.getBN().get(i));
 			}
 		}
-
+		//System.out.println(query);
 		int start = 0;
 		int finish = Integer.MAX_VALUE;
 
@@ -260,11 +269,13 @@ public class SecondAlgorithm {
 						for (int k = 0 ; k < containV.size() ; k++) {
 							if (allFactors.get(j).getFactor().equals(containV.get(k).getFactor())) {
 								allFactors.remove(j);
+								j=0; // CHECKKKKKKKK
 
 							}
 						}
 					}
 					hidden.remove(i);
+					//i = 0; CHECKKKKK
 				}
 			}
 			finish = hidden.size();
