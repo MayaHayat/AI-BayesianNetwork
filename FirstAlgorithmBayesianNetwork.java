@@ -36,11 +36,19 @@ public class FirstAlgorithmBayesianNetwork {
 			if (variable.equals(bn.getBN().get(i).getName())) {
 				if (bn.getBN().get(i).getParents().equals(getGiven(input, bn))) {
 					setWantedOutcomesForAll(input,bn,1);
-					s =""+ probs(bn.getBN().get(i), bn) + ", 0, 0";
+					s =""+ probs(bn.getBN().get(i), bn) + ",0,0";
 					return s;
 				}
 			}
-		}		
+		}	
+		
+		//Find if probability == 0
+		if (isZero(input, bn)) {
+			s="0.00000,0,0";
+			return s;
+		}
+		
+		
 		for (int i = 1 ; i < createAlternatingTable(getHidden(input, bn)).length; i ++) {
 			setWantedOutcomesForAll(input,bn,i);
 
@@ -86,8 +94,26 @@ public class FirstAlgorithmBayesianNetwork {
 		s+= "" + result + "," + keepRecord[1] +"," + keepRecord[2];
 		return s;
 	}
-
-
+	
+	
+	/**
+	 * This function finds out if the probability is 0
+	 * @param input String query
+	 * @param bn is the network
+	 * @return whether the probability is 0
+	 */
+	
+	
+	public static boolean isZero(String input, bayesianNetwork bn) {
+		ArrayList<Variable> given = getGiven(input, bn);
+		ArrayList<String> queryAll = convert(input);
+		for (int i = 0 ; i < given.size() ; i++) {
+			if (given.get(i).getName().equals(queryAll.get(0)) && !given.get(i).getWantedOutcome().equals(queryAll.get(1))) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 
 

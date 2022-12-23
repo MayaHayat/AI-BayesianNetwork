@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 
 /**
- * This class implements the variable elimination algorithm of the Bayesian Network.
+ * This class implements the variable elimination in a different variable sort algorithm of the Bayesian Network.
  * This class uses the following classes:
  * 	readXmlFile
  * 	Variable
@@ -44,6 +44,7 @@ public class ThirdAlgorithm {
 	 */
 
 	public static String getProbability(String input, bayesianNetwork bn) {
+		ArrayList<Variable> hiddenSorted = new ArrayList<>();
 		String s = "";
 		int additions = 0; 
 		int multiplications = 0;
@@ -54,14 +55,20 @@ public class ThirdAlgorithm {
 			if (variable.equals(bn.getBN().get(i).getName())) {
 				if (bn.getBN().get(i).getParents().equals(getGiven(input, bn))) {
 					setWantedOutcomesForAll(input,bn,1);
-					s =""+ probs(bn.getBN().get(i), bn) + ", 0, 0";
+					s =""+ probs(bn.getBN().get(i), bn) + ",0,0";
 					return s;
 				}
 			}
 		}
 
-		ArrayList <Variable> relevant = relevant(input, bn); 
 
+		//Find if probability == 0
+		if (isZero(input, bn)) {
+			s="0.00000,0,0";
+			return s;
+		}
+
+		ArrayList <Variable> relevant = relevant(input, bn); 
 		relevant.sort(null);
 		ArrayList<Variable> allHidden = getHidden(input,bn); // Find all hidden variables.
 		ArrayList<Variable> irrelevant = new ArrayList<>(); // is all variables we need to remove from calculations
@@ -74,7 +81,7 @@ public class ThirdAlgorithm {
 				irrelevant.add(allHidden.get(i));
 			}
 		}
-		
+
 		// Add all factors from network to an arraylist of factors.
 		ArrayList<Factor> allFactors = new ArrayList<>();
 		for (int i = 0 ; i < bn.getBN().size() ; i++) {
@@ -101,12 +108,7 @@ public class ThirdAlgorithm {
 			}
 		}
 
-		// Sort the variables according to ABC so factors can be eliminated in the correct order.
-
-		sort(hidden, allFactors);
-		System.out.println("-------------------");
-		System.out.println(allFactors);
-		System.out.println(hidden);
+		// Sort the variables.
 
 		int multiplyCurrentSize; // how many additions were in each factor
 		for (int i = 0 ; i < allFactors.size() ; i++) {
@@ -117,14 +119,13 @@ public class ThirdAlgorithm {
 			}
 		}
 		allFactors.sort(null); // Sort all factors according to size.
+
+		hidden = sort(hidden, allFactors);
 		//Start the joining and eliminating process.
 		for (int i = 0 ; i < hidden.size() ; i++) {
 			multiplyCurrentSize = 0;
-
-
+			hidden = sort(hidden, allFactors);
 			Factor current = join(hidden.get(i), allFactors, bn);
-
-
 			multiplications +=current.getMultiplications();
 
 			multiplyCurrentSize = current.getFactor().size()-1; //This is used to calculate the num of additions, find size of factor before elimination
@@ -183,27 +184,56 @@ public class ThirdAlgorithm {
 
 
 
-	public static void sort(ArrayList <Variable> hidden, ArrayList <Factor> allFactors) {
+	/**
+	 * This function finds out if the probability is 0
+	 * @param input String query
+	 * @param bn is the network
+	 * @return whether the probability is 0
+	 */
+
+	public static boolean isZero(String input, bayesianNetwork bn) {
+		ArrayList<Variable> given = getGiven(input, bn);
+		ArrayList<String> queryAll = convert(input);
+		for (int i = 0 ; i < given.size() ; i++) {
+			if (given.get(i).getName().equals(queryAll.get(0)) && !given.get(i).getWantedOutcome().equals(queryAll.get(1))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	/**
+	 * This function sorts the variables according the heuristic chosen
+	 * @param hidden
+	 * @param allFactors
+	 * @return a sorted arraylist of variables
+	 */
+
+	public static ArrayList<Variable> sort(ArrayList <Variable> hidden, ArrayList <Factor> allFactors) {
 		//ArrayList<Variable> sorted = new ArrayList<>();
 		HashMap <Variable, Integer> countAppearance = new HashMap<>();
 		int count = 0;
 		for (int i = 0 ; i < hidden.size() ; i++) {
+			count = 0;
 			for (int j = 0 ; j < allFactors.size() ; j++) {
 
 				if (allFactors.get(j).getFactor().get(0).contains(hidden.get(i).getName())) {
-					count++;
+					count+= allFactors.get(j).getFactor().size()-1;
 				}
 				countAppearance.put(hidden.get(i), count);
 			}
 		}
 		Map<Variable, Integer> sortedMap = countAppearance.entrySet().stream()
-			    .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-			    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-			        (oldValue, newValue) -> oldValue, LinkedHashMap::new));		
+				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+						(oldValue, newValue) -> oldValue, LinkedHashMap::new));	
+
 		Set<Variable> keySet =  sortedMap.keySet();
 		ArrayList<Variable> sorted = new ArrayList<>(keySet);
-		hidden = sorted;
-		
+		Collections.reverse(sorted);
+
+		return sorted;
 	}
 
 

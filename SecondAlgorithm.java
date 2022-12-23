@@ -29,33 +29,40 @@ public class SecondAlgorithm {
 	 */
 
 
-	
+
 	/**
 	 * This function calculates the probability, number of additions and multiplications of the given query.
 	 * @param input represents the query
 	 * @param bn is the network
 	 * @return a string that contains probability, number of additions and multiplications.
 	 */
-	
+
 	public static String getProbability(String input, bayesianNetwork bn) {
 		//setWantedOutcomesForGiven(input,bn);
 		String s = "";
 		int additions = 0; 
 		int multiplications = 0;
 		String variable = convert(input).get(0);
-		
+
 		//CHECK if is already found in tables
 		for (int i = 0; i < bn.getBN().size() ; i++) {
 			if (variable.equals(bn.getBN().get(i).getName())) {
 				if (bn.getBN().get(i).getParents().equals(getGiven(input, bn))) {
 					setWantedOutcomesForAll(input,bn,1);
-					s =""+ probs(bn.getBN().get(i), bn) + ", 0, 0";
+					s =""+ probs(bn.getBN().get(i), bn) + ",0,0";
 					return s;
 				}
 			}
 		}
-		
-		
+
+
+		//Find if probability == 0
+		if (isZero(input, bn)) {
+			s="0.00000,0,0";
+			return s;
+		}
+
+
 		ArrayList <Variable> relevant = relevant(input, bn); 
 		relevant.sort(null);
 		ArrayList<Variable> allHidden = getHidden(input,bn); // Find all hidden variables.
@@ -85,7 +92,7 @@ public class SecondAlgorithm {
 				}
 			}
 		}
-		
+
 		//Get rid of all one valued tables, this affects the number of calculations.
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			for (int j = i+1 ; j < allFactors.size() ; j++) {
@@ -100,7 +107,7 @@ public class SecondAlgorithm {
 		int multiplyCurrentSize; // how many additions were in each factor
 		for (int i = 0 ; i < allFactors.size() ; i++) {
 			if (allFactors.get(i).getFactor().get(0).size() < 2) {
-				
+
 				allFactors.remove(i);
 				i=0;
 			}
@@ -117,7 +124,7 @@ public class SecondAlgorithm {
 
 			multiplyCurrentSize = current.getFactor().size()-1; //This is used to calculate the num of additions, find size of factor before elimination
 			current.eliminateVariable(hidden.get(i), bn);
-			
+
 			multiplyCurrentSize/= (current.getFactor().size()-1); //This is used to calculate the num of additions, find out by how much the table has shrank.
 			additions +=(current.getFactor().size()-1) * (multiplyCurrentSize-1);
 			for (int j = 0 ; j< allFactors.size()  ; j++) {
@@ -161,23 +168,36 @@ public class SecondAlgorithm {
 		}
 		probability*=alpha;
 		//multiplications ++;
-		
+
 		String result = String.format("%.5f", probability);
 
 
 		s+=""+result + "," + additions +"," + multiplications;
 		return s;
 	}
-	
 
-	
-	public static void resetWantedOutcome(bayesianNetwork bn) {
-		for (int i = 0 ; i < bn.getBN().size() ; i++) {
-			bn.getBN().get(i).setWantedOutcome(null);
+
+
+	/**
+	 * This function finds out if the probability is 0
+	 * @param input String query
+	 * @param bn is the network
+	 * @return whether the probability is 0
+	 */
+
+
+	public static boolean isZero(String input, bayesianNetwork bn) {
+		ArrayList<Variable> given = getGiven(input, bn);
+		ArrayList<String> queryAll = convert(input);
+		for (int i = 0 ; i < given.size() ; i++) {
+			if (given.get(i).getName().equals(queryAll.get(0)) && !given.get(i).getWantedOutcome().equals(queryAll.get(1))) {
+				return true;
+			}
 		}
+		return false;
 	}
-	
-	
+
+
 	/**
 	 * This function finds all relevant variables for the calculation
 	 * @param input the query sting
@@ -228,7 +248,7 @@ public class SecondAlgorithm {
 
 		return hidden;
 	}
-	
+
 	/**
 	 * This function helps us remove all irrelevant hidden variables from the calculation.
 	 * @param allFactors is the current list of factors.
@@ -250,7 +270,7 @@ public class SecondAlgorithm {
 		if (count == 1) return true;
 		return false;
 	}
-	
+
 	/**
 	 * This function joins all factors that contain a certain variable, this function also helps us count the number of multiplications.
 	 * @param v is the variable that all factors must contain in order to be joined in this round.
@@ -258,7 +278,7 @@ public class SecondAlgorithm {
 	 * @param bn is out total network.
 	 * @return a factor which is a joint factor of all factors that contain v.
 	 */
-	
+
 
 	public static Factor join(Variable v, ArrayList<Factor> factors, bayesianNetwork bn) {
 		int multiply = 0;
@@ -278,7 +298,7 @@ public class SecondAlgorithm {
 		if (factorsThatContainV.size()==1) {
 			return factorsThatContainV.get(0);
 		}
-		
+
 		// Sort the factors according to their size to minimize number of multiplications.
 		factorsThatContainV.sort(null);
 		Factor answer = factorsThatContainV.get(0);
@@ -292,7 +312,7 @@ public class SecondAlgorithm {
 		for (int i = 0 ; i < factors.size() ; i++) {
 			if (factorsThatContainV.get(0).getFactor().equals(factors.get(i))){
 				factors.remove(i);
-				
+
 			}
 		}
 		factors.add(answer);
@@ -343,7 +363,7 @@ public class SecondAlgorithm {
 		}
 		return numbers;
 	}
-	
+
 	/**
 	 * This function convert the input string into an arraylist.
 	 * @param input is the input string
@@ -451,39 +471,39 @@ public class SecondAlgorithm {
 		}
 
 	}
-	
-//=============================================================================//
+
+	//=============================================================================//
 
 	// These are used to check whether the answer is already found in CPT // 
-	
+
 	//Get given as an ArrayList of Variables
-		public static ArrayList<Variable> getGiven(String input, bayesianNetwork bn){
-			String basic = input.substring(2, input.length()-3);
-			String [] queryIntoArray = basic.split("[\\|=,]");
-			ArrayList <String> query = new ArrayList<>();
-			for (int i = 0 ; i < queryIntoArray.length ; i++)
-				query.add(queryIntoArray[i]);
+	public static ArrayList<Variable> getGiven(String input, bayesianNetwork bn){
+		String basic = input.substring(2, input.length()-3);
+		String [] queryIntoArray = basic.split("[\\|=,]");
+		ArrayList <String> query = new ArrayList<>();
+		for (int i = 0 ; i < queryIntoArray.length ; i++)
+			query.add(queryIntoArray[i]);
 
-			ArrayList <String> variablesquery = new ArrayList<>();
-			for (int i = 0 ; i < queryIntoArray.length ; i+=2)
-				variablesquery.add(queryIntoArray[i]);
+		ArrayList <String> variablesquery = new ArrayList<>();
+		for (int i = 0 ; i < queryIntoArray.length ; i+=2)
+			variablesquery.add(queryIntoArray[i]);
 
-			ArrayList<Variable> given = new ArrayList<>();
-			for (int i = 0 ; i < bn.getBN().size() ; i ++) {
-				for (int k = 0 ; k < variablesquery.size() ; k++) {
-					for (int j = 2; j < query.size() ; j+=2) {
-						if (bn.getBN().get(i).getName().equals(variablesquery.get(k)) && bn.getBN().get(i).getName().equals(query.get(j))) {
-							bn.getBN().get(i).setWantedOutcome(query.get(j+1));
-							given.add(bn.getBN().get(i));
-						}
+		ArrayList<Variable> given = new ArrayList<>();
+		for (int i = 0 ; i < bn.getBN().size() ; i ++) {
+			for (int k = 0 ; k < variablesquery.size() ; k++) {
+				for (int j = 2; j < query.size() ; j+=2) {
+					if (bn.getBN().get(i).getName().equals(variablesquery.get(k)) && bn.getBN().get(i).getName().equals(query.get(j))) {
+						bn.getBN().get(i).setWantedOutcome(query.get(j+1));
+						given.add(bn.getBN().get(i));
 					}
 				}
 			}
-			return given;
 		}
-	
-	
-	
+		return given;
+	}
+
+
+
 	public static void setWantedOutcomesForAll(String input, bayesianNetwork bn, int loopNumber) {
 		String basic = input.substring(2, input.length()-3);
 		String [] queryIntoArray = basic.split("[\\|=,]");
@@ -522,10 +542,10 @@ public class SecondAlgorithm {
 		}
 
 	}
-	
-	
-	
-	
+
+
+
+
 	public static double probs(Variable v, bayesianNetwork bn) {
 		String [][] cpt = v.createTruthTableByVariable(v);
 		//printMat(cpt);
@@ -561,9 +581,9 @@ public class SecondAlgorithm {
 
 		return wantedProbabilitiy;
 	}
-	
-	
-	
+
+
+
 	public static String[][] createAlternatingTable(ArrayList<Variable> hidden){
 		int rows = 1;
 		for (int i = 0 ; i < hidden.size() ; i++) {
@@ -593,7 +613,7 @@ public class SecondAlgorithm {
 		return alternating;
 
 	}
-	
+
 	// Only relevant for self check
 	public static void printMat(String [][] s) {
 		for (int i = 0 ; i < s.length ; i++) {

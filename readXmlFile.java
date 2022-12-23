@@ -43,17 +43,19 @@ public class readXmlFile {
 	 */
 
 	public ArrayList<String> getNames() {
-		ArrayList<String> names = new ArrayList<String>();
+
 		// Note that the names are found under the VARIABLE line, therefore we need to access that first
 		NodeList namesNode = doc.getElementsByTagName("VARIABLE");
+		ArrayList<String> names = new ArrayList<String>();
+
 		//Go through all names found in file
-		for(int i=0; i<namesNode.getLength(); i++){
+		for(int i=0; i < namesNode.getLength(); i++){
 			Node name = namesNode.item(i);
 			if(name.getNodeType() == Node.ELEMENT_NODE){ 
-				Element elementNames = (Element) name;
+				Element eName = (Element) name;
 				//Then we will access the NAME lines
-				String variableName = elementNames.getElementsByTagName("NAME").item(0).getTextContent();
-				names.add(variableName);
+				String vName = eName.getElementsByTagName("NAME").item(0).getTextContent();
+				names.add(vName);
 
 			}
 		}
@@ -66,17 +68,19 @@ public class readXmlFile {
 	 */
 
 	public ArrayList<String> getOutcomes(String variable) {
-		ArrayList<String> outcomes = new ArrayList<String>();
+		
 		//Note in file that the possible outcomes are also found underneath VARIABLE
 		NodeList outcomeNode = doc.getElementsByTagName("VARIABLE");
-		for(int i=0; i<outcomeNode.getLength(); i++){
+		ArrayList<String> outcomes = new ArrayList<String>();
+
+		for(int i=0; i < outcomeNode.getLength(); i++){
 			Node outcome = outcomeNode.item(i);
 			if(outcome.getNodeType() == Node.ELEMENT_NODE){
-				Element elementOutcomes = (Element) outcome;
-				String variableOutcome = elementOutcomes.getElementsByTagName("NAME").item(0).getTextContent();
+				Element eOutcomes = (Element) outcome;
+				String vOutcome = eOutcomes.getElementsByTagName("NAME").item(0).getTextContent();
 				//find the outcomes of a given variable
-				if(variable.equals(variableOutcome)) {
-					NodeList outcomesOfVariable = elementOutcomes.getElementsByTagName("OUTCOME");
+				if(variable.equals(vOutcome)) {
+					NodeList outcomesOfVariable = eOutcomes.getElementsByTagName("OUTCOME");
 					for (int j = 0 ; j < outcomesOfVariable.getLength(); j++) 
 						outcomes.add(outcomesOfVariable.item(j).getTextContent());
 
@@ -93,18 +97,20 @@ public class readXmlFile {
 	 */
 
 	public ArrayList<String> getProbabilities(String variable) {
-		ArrayList<String> probabilities = new ArrayList<String>();
+		
 		//Note that the probabilities(TABLE) are in the DEFINITION section
 		NodeList probNode = doc.getElementsByTagName("DEFINITION");
-		for(int i=0; i<probNode.getLength(); i++){
+		ArrayList<String> probabilities = new ArrayList<String>();
+		
+		for(int i=0; i < probNode.getLength(); i++){
 			Node prob = probNode.item(i);
 			if(prob.getNodeType() == Node.ELEMENT_NODE){
-				Element elementProbs = (Element) prob;
+				Element eProbs = (Element) prob;
 				//TABLE is found in the same level as FOR
-				String variableProb = elementProbs.getElementsByTagName("FOR").item(0).getTextContent();
+				String vProb = eProbs.getElementsByTagName("FOR").item(0).getTextContent();
 				//Find the probabilities of a given variable by String.
-				if(variable.equals(variableProb)) {
-					NodeList probabilitiessOfVariable = elementProbs.getElementsByTagName("TABLE");
+				if(variable.equals(vProb)) {
+					NodeList probabilitiessOfVariable = eProbs.getElementsByTagName("TABLE");
 					for (int j = 0 ; j < probabilitiessOfVariable.getLength(); j++) 
 						probabilities.add(probabilitiessOfVariable.item(j).getTextContent());
 
@@ -123,17 +129,19 @@ public class readXmlFile {
 	 */
 
 	public ArrayList<String> getParents(String child) {
-		ArrayList<String> parents = new ArrayList<String>();
+
 		//Note that the parents(GIVEN) are in the DEFINITION section
 		NodeList parentsNode = doc.getElementsByTagName("DEFINITION");
-		for(int i=0; i<parentsNode.getLength(); i++){
+		ArrayList<String> parents = new ArrayList<String>();
+
+		for(int i=0; i < parentsNode.getLength(); i++){
 			Node parent = parentsNode.item(i);
 			if(parent.getNodeType() == Node.ELEMENT_NODE){
-				Element elementParents = (Element) parent;
+				Element eParents = (Element) parent;
 				//we need to use the next line as it is found in the same level as FOR
-				String variableParent = elementParents.getElementsByTagName("FOR").item(0).getTextContent();
-				if(child.equals(variableParent)) {
-					NodeList parentsOfVariable = elementParents.getElementsByTagName("GIVEN");
+				String vParent = eParents.getElementsByTagName("FOR").item(0).getTextContent();
+				if(child.equals(vParent)) {
+					NodeList parentsOfVariable = eParents.getElementsByTagName("GIVEN");
 					for (int j = 0 ; j < parentsOfVariable.getLength(); j++) 
 						parents.add(parentsOfVariable.item(j).getTextContent());
 				}
