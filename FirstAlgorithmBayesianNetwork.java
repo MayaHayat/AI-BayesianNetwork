@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * This class implements the simple deduction algorithm of the Bayesian Network.
@@ -14,7 +13,7 @@ import java.util.Arrays;
 
 public class FirstAlgorithmBayesianNetwork {
 
-	
+
 	/**
 	 * This function finally returns the probability of the event happening.
 	 * @param input the given query as a string
@@ -41,14 +40,19 @@ public class FirstAlgorithmBayesianNetwork {
 				}
 			}
 		}	
-		
+
 		//Find if probability == 0
 		if (isZero(input, bn)) {
 			s="0.00000,0,0";
 			return s;
 		}
-		
-		
+
+		//Find if probability == 1
+		if (isOne(input, bn)) {
+			s="1.00000,0,0";
+			return s;
+		}
+
 		for (int i = 1 ; i < createAlternatingTable(getHidden(input, bn)).length; i ++) {
 			setWantedOutcomesForAll(input,bn,i);
 
@@ -61,7 +65,7 @@ public class FirstAlgorithmBayesianNetwork {
 			answerNumerator += numerator;
 			keepRecord[1]++;
 		}
-		
+
 		for (int i = 1 ; i < createAlternatingTable(getHiddenForDenominator(input, bn)).length; i ++) {
 			setWantedOutcomesForDenominator2(input,bn,i);
 			denominator = probs(bn.getBN().get(0),bn);
@@ -88,22 +92,43 @@ public class FirstAlgorithmBayesianNetwork {
 			}
 		}
 		keepRecord[1]--;
-		
+
 		String result = String.format("%.5f", answer);
 
 		s+= "" + result + "," + keepRecord[1] +"," + keepRecord[2];
 		return s;
 	}
-	
-	
+
 	/**
-	 * This function finds out if the probability is 0
+	 * This function finds out if the query is already found in given
+	 * @param input String query
+	 * @param bn is the network
+	 * @return whether the probability is 1
+	 */
+
+
+	public static boolean isOne(String input, bayesianNetwork bn) {
+		ArrayList<Variable> given = getGiven(input, bn);
+		ArrayList<String> queryAll = convert(input);
+		for (int i = 0 ; i < given.size() ; i++) {
+			if (given.get(i).getName().equals(queryAll.get(0)) && given.get(i).getWantedOutcome().equals(queryAll.get(1))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
+
+	/**
+	 * This function finds out if the query is already found in given
 	 * @param input String query
 	 * @param bn is the network
 	 * @return whether the probability is 0
 	 */
-	
-	
+
+
 	public static boolean isZero(String input, bayesianNetwork bn) {
 		ArrayList<Variable> given = getGiven(input, bn);
 		ArrayList<String> queryAll = convert(input);
@@ -276,7 +301,7 @@ public class FirstAlgorithmBayesianNetwork {
 			query.add(queryIntoArray[i]);
 		//Set given wanted outcome
 		ArrayList<Variable> given = getGiven(input,bn);
-		
+
 		//set hidden's wanted outcome
 		ArrayList <Variable> hidden = getHidden(input,bn);
 		for (int i = 0 ; i < bn.getBN().size() ; i++) {
@@ -284,12 +309,12 @@ public class FirstAlgorithmBayesianNetwork {
 				hidden.add(bn.getBN().get(i));
 		}
 		String [][] alternating = createAlternatingTable(hidden);
-	//	printMat(alternating);
-//		for (int j = 1 ; j < alternating.length ; j++) {
-			for (int i = 0 ; i < hidden.size() ; i++) {
-				
-				hidden.get(i).setWantedOutcome(alternating [loopNumber][i]);
-			}
+		//	printMat(alternating);
+		//		for (int j = 1 ; j < alternating.length ; j++) {
+		for (int i = 0 ; i < hidden.size() ; i++) {
+
+			hidden.get(i).setWantedOutcome(alternating [loopNumber][i]);
+		}
 		//}
 
 	}
@@ -352,7 +377,7 @@ public class FirstAlgorithmBayesianNetwork {
 			if(bn.getBN().get(i).getName().equals(queryIntoArray[0]))
 				hidden.add(bn.getBN().get(i));
 		}
-		
+
 		return hidden;
 	}
 

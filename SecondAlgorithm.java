@@ -62,6 +62,12 @@ public class SecondAlgorithm {
 			return s;
 		}
 
+		//Find if probability == 1
+		if (isOne(input, bn)) {
+			s="1.00000,0,0";
+			return s;
+		}
+
 
 		ArrayList <Variable> relevant = relevant(input, bn); 
 		relevant.sort(null);
@@ -175,6 +181,27 @@ public class SecondAlgorithm {
 		s+=""+result + "," + additions +"," + multiplications;
 		return s;
 	}
+
+
+	/**
+	 * This function finds out if the query is already found in given
+	 * @param input String query
+	 * @param bn is the network
+	 * @return whether the probability is 1
+	 */
+
+
+	public static boolean isOne(String input, bayesianNetwork bn) {
+		ArrayList<Variable> given = getGiven(input, bn);
+		ArrayList<String> queryAll = convert(input);
+		for (int i = 0 ; i < given.size() ; i++) {
+			if (given.get(i).getName().equals(queryAll.get(0)) && given.get(i).getWantedOutcome().equals(queryAll.get(1))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 
 

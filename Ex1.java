@@ -24,7 +24,7 @@ public class Ex1 {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				String input = line;
-				System.out.println(input);
+				//System.out.println(input);
 				String query [] = input.split(",");
 				int algoNum = Integer.parseInt(query[query.length-1]);
 				switch (algoNum) {
@@ -33,7 +33,7 @@ public class Ex1 {
 				{
 					bayesianNetwork bn = new bayesianNetwork(x);
 					String answer = FirstAlgorithmBayesianNetwork.finalCalculation(input, bn);
-					System.out.println(answer);
+					//System.out.println(answer);
 					writer.write(answer + "\n");
 					break;
 				}
@@ -42,7 +42,7 @@ public class Ex1 {
 				{
 					bayesianNetwork bn = new bayesianNetwork(x);
 					String answer = SecondAlgorithm.getProbability(input, bn);
-					System.out.println(answer);
+					//System.out.println(answer);
 					writer.write(answer + "\n");					
 					break;
 
@@ -52,7 +52,7 @@ public class Ex1 {
 				{
 					bayesianNetwork bn = new bayesianNetwork(x);
 					String answer = ThirdAlgorithm.getProbability(input, bn);
-					System.out.println(answer);
+					//System.out.println(answer);
 					writer.write(answer + "\n");					
 					break;
 				}

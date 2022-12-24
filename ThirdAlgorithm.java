@@ -68,6 +68,13 @@ public class ThirdAlgorithm {
 			return s;
 		}
 
+		//Find if probability == 1
+		if (isOne(input, bn)) {
+			s="1.00000,0,0";
+			return s;
+		}
+
+
 		ArrayList <Variable> relevant = relevant(input, bn); 
 		relevant.sort(null);
 		ArrayList<Variable> allHidden = getHidden(input,bn); // Find all hidden variables.
@@ -119,7 +126,6 @@ public class ThirdAlgorithm {
 			}
 		}
 		allFactors.sort(null); // Sort all factors according to size.
-
 		hidden = sort(hidden, allFactors);
 		//Start the joining and eliminating process.
 		for (int i = 0 ; i < hidden.size() ; i++) {
@@ -182,6 +188,26 @@ public class ThirdAlgorithm {
 		return s;
 	}
 
+	/**
+	 * This function finds out if the query is already found in given
+	 * @param input String query
+	 * @param bn is the network
+	 * @return whether the probability is 1
+	 */
+
+
+	public static boolean isOne(String input, bayesianNetwork bn) {
+		ArrayList<Variable> given = getGiven(input, bn);
+		ArrayList<String> queryAll = convert(input);
+		for (int i = 0 ; i < given.size() ; i++) {
+			if (given.get(i).getName().equals(queryAll.get(0)) && given.get(i).getWantedOutcome().equals(queryAll.get(1))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 
 
 	/**
@@ -203,6 +229,7 @@ public class ThirdAlgorithm {
 	}
 
 
+
 	/**
 	 * This function sorts the variables according the heuristic chosen
 	 * @param hidden
@@ -212,8 +239,11 @@ public class ThirdAlgorithm {
 
 	public static ArrayList<Variable> sort(ArrayList <Variable> hidden, ArrayList <Factor> allFactors) {
 		//ArrayList<Variable> sorted = new ArrayList<>();
+		Collections.sort(hidden, Collections.reverseOrder());
+		//hidden.sort(null);
 		HashMap <Variable, Integer> countAppearance = new HashMap<>();
 		int count = 0;
+
 		for (int i = 0 ; i < hidden.size() ; i++) {
 			count = 0;
 			for (int j = 0 ; j < allFactors.size() ; j++) {
@@ -229,8 +259,11 @@ public class ThirdAlgorithm {
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
 						(oldValue, newValue) -> oldValue, LinkedHashMap::new));	
 
-		Set<Variable> keySet =  sortedMap.keySet();
+
+		Set<Variable> keySet =  sortedMap.keySet();		
+
 		ArrayList<Variable> sorted = new ArrayList<>(keySet);
+		
 		Collections.reverse(sorted);
 
 		return sorted;
