@@ -7,6 +7,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
+/**
+ * This class reads the xml file's name and all queries from the input file and prints results into the output file.
+ * @author Maya
+ *
+ */
+
 
 public class Ex1 {
 

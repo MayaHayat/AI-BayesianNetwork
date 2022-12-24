@@ -3,6 +3,12 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * This class is the variable class, it contains all data that is related to a single node in our network.
+ * @author Maya
+ *
+ */
+
 public class Variable implements Comparable <Variable>{
 	private String name;
 	private ArrayList<String> possibleOutcomes;
@@ -44,6 +50,7 @@ public class Variable implements Comparable <Variable>{
 		this.possibleOutcomes = x.getOutcomes(name);
 		probabilities = x.getProbabilities(name).get(0).split(" ");
 	}
+	
 
 	public Variable(readXmlFile x, String name, String wantedOutcome) {
 		this.name = name;
@@ -83,6 +90,14 @@ public class Variable implements Comparable <Variable>{
 		this.name = name;
 		this.wantedOutcome = wantedOutcome;
 	}
+	
+	/**
+	 * Using this constructor we create our network by using it in the BN class.
+	 * @param name name of the variable
+	 * @param parents of the variable
+	 * @param possibleOutcomes 
+	 * @param probabilities
+	 */
 
 	public Variable (String name, ArrayList<Variable> parents, ArrayList<String> possibleOutcomes, ArrayList <String > probabilities) {
 		this.name = name;
@@ -92,6 +107,8 @@ public class Variable implements Comparable <Variable>{
 			this.probabilities[i] = probabilities.get(i);
 		}
 	}
+	
+	
 
 	public String[] getProbs() {
 		return this.probabilities;
