@@ -49,13 +49,14 @@ public class Factor implements Comparable <Factor>{
 							if (!factor.get(k).get(i).equals(bn.getBN().get(j).getWantedOutcome())) {
 								if (!rowsToRemove.contains(k)) {
 									rowsToRemove.add(k);
-									k = 0; // MAKE SURE THIS IS RIGHTTTTTT
+									k = 1; // MAKE SURE THIS IS RIGHTTTTTT
 								}
 							}
 						}
 						factor = removeCol(factor, deleteCol);
 						i=0;   //Make sure this is correct!!!!!!!!!!!!!!!!!
 					}
+					//System.out.println(i);
 				}
 			}
 		}
