@@ -16,7 +16,6 @@ The algorithms we had to implement are:
 In this part we had to first create CPTs and simplify all query according to the bellow example (going through all possible outcomes for the hidden and calulating them).
 
 ### Variable elimination
-![My Remote Image](https://wiki.ubc.ca/images/f/f6/Factor1.png)
 
 The variable elimination algorithm is called that as ut eliminate variables one by one and by that decreases the number of caculations being done.
 The process includes a few simple steps: 
@@ -27,7 +26,9 @@ The process includes a few simple steps:
       3.2 Join all factors that contain H
       3.3 Eliminate H by summing out the rows and deleting its column
       3.4 If factor becomes one value disregard it.
-    
+      
+  ![My Remote Image](https://wiki.ubc.ca/images/f/f6/Factor1.png)
+
 
 ## Input
 We were given an XML file which we had to read the network from (an example is also found in this project).
