@@ -1,6 +1,5 @@
 # Bayesian Network
 
-![My Remote Image](https://static.javatpoint.com/tutorial/ai/images/bayesian2.png)
 
 In this project we had to implement 3 different methods of finding the probability and compare them.
 The algorithms we had to implement are:
@@ -8,8 +7,13 @@ The algorithms we had to implement are:
   2. Variable elimination (where the elimination order is alphabetically)
   3. Variable elimination (where the elimination order is according the the sum of all factors that a variable is found in)
 
+![My Remote Image](https://static.javatpoint.com/tutorial/ai/images/bayesian2.png)
+
+
 
 ### Simple deduction
+
+In this part we had to first create CPTs and simplify all query according to the bellow example (going through all possible outcomes for the hidden and calulating them).
 
 ### Variable elimination
 ![My Remote Image](https://wiki.ubc.ca/images/f/f6/Factor1.png)
