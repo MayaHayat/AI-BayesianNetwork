@@ -36,5 +36,3 @@ When printing the outcomes we note a great decrease between the first and second
 
 The third algorithm could've been better if when there are two variables of tables the same size it would eliminate them alphabetically and not randomly as I did.
 
-## Grade
--- 100 --
